@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -22,7 +22,8 @@ export default function Content() {
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
-  const [workflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+  const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+  const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);

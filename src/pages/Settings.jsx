@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedUsers, DEFAULT_WORKFLOW_STEPS } from "../lib/seed";
+import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 
@@ -53,10 +53,13 @@ function GeneralPanel() {
   );
 }
 
-const NEW_STEP_COLORS = ["#9ca3af", "#f59e0b", "#0ea5e9", "#8b5cf6", "#d946ef", "#3b82f6", "#10b981", "#ef4444", "#14b8a6"];
-
 function WorkflowPanel() {
-  const [steps, setSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+  const [rawSteps, setSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+  const steps = useMemo(() => normalizeWorkflowSteps(rawSteps), [rawSteps]);
+
+  useEffect(() => {
+    if (rawSteps.some((s) => typeof s === "string" || !s.color)) setSteps(steps);
+  }, [rawSteps, steps]);
 
   function updateStep(i, patch) {
     setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
@@ -76,7 +79,7 @@ function WorkflowPanel() {
   }
 
   function addStep() {
-    setSteps([...steps, { id: `step-${Date.now()}`, name: `Step ${steps.length + 1}`, color: NEW_STEP_COLORS[steps.length % NEW_STEP_COLORS.length] }]);
+    setSteps([...steps, { id: `step-${Date.now()}`, name: `Step ${steps.length + 1}`, color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] }]);
   }
 
   return (
@@ -102,43 +105,51 @@ function WorkflowPanel() {
 
       <div className="space-y-2">
         {steps.map((s, i) => (
-          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-200 p-2">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
-              {i + 1}
-            </span>
-            <input
-              type="color"
-              value={s.color}
-              onChange={(e) => updateStep(i, { color: e.target.value })}
-              title="Step color"
-              className="h-7 w-7 shrink-0 cursor-pointer rounded border border-gray-200 p-0.5"
-            />
-            <input
-              value={s.name}
-              onChange={(e) => updateStep(i, { name: e.target.value })}
-              className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
-            />
-            <button
-              onClick={() => moveStep(i, -1)}
-              disabled={i === 0}
-              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
-            >
-              <ArrowUp size={14} />
-            </button>
-            <button
-              onClick={() => moveStep(i, 1)}
-              disabled={i === steps.length - 1}
-              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
-            >
-              <ArrowDown size={14} />
-            </button>
-            <button
-              onClick={() => removeStep(i)}
-              disabled={steps.length <= 1}
-              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
-            >
-              <Trash2 size={14} />
-            </button>
+          <div key={s.id} className="space-y-2 rounded-md border border-gray-200 p-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+                {i + 1}
+              </span>
+              <input
+                value={s.name}
+                onChange={(e) => updateStep(i, { name: e.target.value })}
+                className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+              />
+              <button
+                onClick={() => moveStep(i, -1)}
+                disabled={i === 0}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+              >
+                <ArrowUp size={14} />
+              </button>
+              <button
+                onClick={() => moveStep(i, 1)}
+                disabled={i === steps.length - 1}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+              >
+                <ArrowDown size={14} />
+              </button>
+              <button
+                onClick={() => removeStep(i)}
+                disabled={steps.length <= 1}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+            <div className="flex items-center gap-1.5 pl-8">
+              {WORKFLOW_COLOR_PALETTE.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => updateStep(i, { color: c })}
+                  title={c}
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full ring-1 ring-inset ring-black/10"
+                  style={{ backgroundColor: c }}
+                >
+                  {s.color === c && <Check size={12} className="text-white drop-shadow" />}
+                </button>
+              ))}
+            </div>
           </div>
         ))}
       </div>

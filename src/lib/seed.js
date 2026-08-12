@@ -15,15 +15,38 @@ const CONTENT_TYPES = [
 
 const STATUSES = ["Published", "Draft", "Changed", "Archived"];
 const LOCALES = ["en", "cs", "de"];
-const WORKFLOW_STEPS = [
-  { id: "wf1", name: "Draft", color: "#9ca3af" },
-  { id: "wf2", name: "Copywriting", color: "#f59e0b" },
-  { id: "wf3", name: "Media", color: "#0ea5e9" },
-  { id: "wf4", name: "Review 1", color: "#8b5cf6" },
-  { id: "wf5", name: "Review 2", color: "#d946ef" },
-  { id: "wf6", name: "Ready", color: "#3b82f6" },
-  { id: "wf7", name: "Published", color: "#10b981" },
+
+const WORKFLOW_COLORS = [
+  "#9ca3af", // gray
+  "#ef4444", // red
+  "#f97316", // orange
+  "#f59e0b", // amber
+  "#10b981", // emerald
+  "#14b8a6", // teal
+  "#0ea5e9", // sky
+  "#3b82f6", // blue
+  "#8b5cf6", // violet
+  "#ec4899", // pink
 ];
+
+const WORKFLOW_STEPS = [
+  { id: "wf1", name: "Draft", color: WORKFLOW_COLORS[0] },
+  { id: "wf2", name: "Copywriting", color: WORKFLOW_COLORS[3] },
+  { id: "wf3", name: "Media", color: WORKFLOW_COLORS[6] },
+  { id: "wf4", name: "Review 1", color: WORKFLOW_COLORS[8] },
+  { id: "wf5", name: "Review 2", color: WORKFLOW_COLORS[9] },
+  { id: "wf6", name: "Ready", color: WORKFLOW_COLORS[7] },
+  { id: "wf7", name: "Published", color: WORKFLOW_COLORS[4] },
+];
+
+export function normalizeWorkflowSteps(steps) {
+  if (!Array.isArray(steps) || steps.length === 0) return WORKFLOW_STEPS;
+  return steps.map((s, i) =>
+    typeof s === "string"
+      ? { id: `step-${i}`, name: s, color: WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
+      : { id: s.id ?? `step-${i}`, name: s.name, color: s.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length] }
+  );
+}
 
 function pick(arr, i) {
   return arr[i % arr.length];
@@ -173,3 +196,4 @@ export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
 export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean"];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
+export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;
