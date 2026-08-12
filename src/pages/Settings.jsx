@@ -1,11 +1,13 @@
 import { useState } from "react";
+import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedUsers } from "../lib/seed";
+import { seedUsers, DEFAULT_WORKFLOW_STEPS } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 
 const TABS = [
   { id: "general", label: "General" },
+  { id: "workflow", label: "Workflow" },
   { id: "users", label: "Users & roles" },
   { id: "api", label: "API keys" },
 ];
@@ -46,6 +48,103 @@ function GeneralPanel() {
       </div>
       <button className="rounded-md bg-[#8a6d0d] px-4 py-2 text-sm font-medium text-white hover:bg-[#6b5509]">
         Save changes
+      </button>
+    </div>
+  );
+}
+
+const NEW_STEP_COLORS = ["#9ca3af", "#f59e0b", "#0ea5e9", "#8b5cf6", "#d946ef", "#3b82f6", "#10b981", "#ef4444", "#14b8a6"];
+
+function WorkflowPanel() {
+  const [steps, setSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+
+  function updateStep(i, patch) {
+    setSteps(steps.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+  }
+
+  function moveStep(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= steps.length) return;
+    const next = [...steps];
+    [next[i], next[j]] = [next[j], next[i]];
+    setSteps(next);
+  }
+
+  function removeStep(i) {
+    if (steps.length <= 1) return;
+    setSteps(steps.filter((_, idx) => idx !== i));
+  }
+
+  function addStep() {
+    setSteps([...steps, { id: `step-${Date.now()}`, name: `Step ${steps.length + 1}`, color: NEW_STEP_COLORS[steps.length % NEW_STEP_COLORS.length] }]);
+  }
+
+  return (
+    <div className="max-w-lg">
+      <p className="mb-4 text-sm text-gray-500">
+        Define the stages content moves through from draft to published, in order, with a color for each.
+      </p>
+
+      <div className="mb-5 flex flex-wrap items-center gap-1.5">
+        {steps.map((s, i) => (
+          <span key={s.id} className="flex items-center gap-1.5">
+            <span
+              className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset"
+              style={{ backgroundColor: s.color + "1a", color: s.color, "--tw-ring-color": s.color + "40" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
+              {s.name || `Step ${i + 1}`}
+            </span>
+            {i < steps.length - 1 && <ArrowRight size={12} className="text-gray-300" />}
+          </span>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {steps.map((s, i) => (
+          <div key={s.id} className="flex items-center gap-2 rounded-md border border-gray-200 p-2">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
+              {i + 1}
+            </span>
+            <input
+              type="color"
+              value={s.color}
+              onChange={(e) => updateStep(i, { color: e.target.value })}
+              title="Step color"
+              className="h-7 w-7 shrink-0 cursor-pointer rounded border border-gray-200 p-0.5"
+            />
+            <input
+              value={s.name}
+              onChange={(e) => updateStep(i, { name: e.target.value })}
+              className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+            />
+            <button
+              onClick={() => moveStep(i, -1)}
+              disabled={i === 0}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+            >
+              <ArrowUp size={14} />
+            </button>
+            <button
+              onClick={() => moveStep(i, 1)}
+              disabled={i === steps.length - 1}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30"
+            >
+              <ArrowDown size={14} />
+            </button>
+            <button
+              onClick={() => removeStep(i)}
+              disabled={steps.length <= 1}
+              className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600 disabled:opacity-30"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={addStep} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700">
+        <Plus size={14} /> Add step
       </button>
     </div>
   );
@@ -140,6 +239,7 @@ export default function Settings() {
       <div className="flex-1 overflow-y-auto p-6">
         <h1 className="mb-4 text-xl font-semibold text-gray-900">{TABS.find((t) => t.id === tab)?.label}</h1>
         {tab === "general" && <GeneralPanel />}
+        {tab === "workflow" && <WorkflowPanel />}
         {tab === "users" && <UsersPanel />}
         {tab === "api" && <ApiKeysPanel />}
       </div>

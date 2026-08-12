@@ -67,7 +67,7 @@ export default function ContentTypes() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Content types</h1>
         <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
-          <Plus size={15} /> Add content type
+          <Plus size={15} /> Create new
         </button>
       </div>
 

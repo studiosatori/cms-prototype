@@ -1,14 +1,14 @@
 import { NavLink } from "react-router-dom";
-import { Search, HelpCircle, Settings as SettingsIcon } from "lucide-react";
+import { FileText, LayoutGrid, Layers, Image, Settings as SettingsIcon } from "lucide-react";
 import Avatar from "./Avatar";
 import { seedUsers } from "../lib/seed";
 
 const TABS = [
-  { to: "/content", label: "Content" },
-  { to: "/catalogue", label: "Catalogue" },
-  { to: "/content-types", label: "Content types" },
-  { to: "/media", label: "Media" },
-  { to: "/settings", label: "Settings" },
+  { to: "/content", label: "Content", icon: FileText },
+  { to: "/catalogue", label: "Catalogue", icon: LayoutGrid },
+  { to: "/content-types", label: "Content types", icon: Layers },
+  { to: "/media", label: "Media", icon: Image },
+  { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export default function TopNav() {
@@ -28,31 +28,21 @@ export default function TopNav() {
             key={tab.to}
             to={tab.to}
             className={({ isActive }) =>
-              `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`
             }
           >
+            <tab.icon size={15} />
             {tab.label}
           </NavLink>
         ))}
       </nav>
 
       <div className="ml-auto flex items-center gap-1 text-gray-500">
-        <button className="rounded-md p-2 hover:bg-gray-100 hover:text-gray-900" title="Search">
-          <Search size={17} />
-        </button>
-        <button className="rounded-md p-2 hover:bg-gray-100 hover:text-gray-900" title="Help">
-          <HelpCircle size={17} />
-        </button>
-        <button className="rounded-md p-2 hover:bg-gray-100 hover:text-gray-900" title="Settings">
-          <SettingsIcon size={17} />
-        </button>
-        <div className="ml-2">
-          <Avatar user={me} size={28} />
-        </div>
+        <Avatar user={me} size={28} />
       </div>
     </header>
   );

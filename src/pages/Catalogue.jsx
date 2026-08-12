@@ -96,7 +96,6 @@ export default function Catalogue() {
         </span>
       ),
     },
-    { key: "locale", header: "Locale", render: (r) => <span className="uppercase text-gray-500">{r.locale}</span> },
     { key: "updatedAt", header: "Modified", sortValue: (r) => r.updatedAt, render: (r) => <span className="text-gray-500">{formatDate(r.updatedAt)}</span> },
     { key: "lastReviewedAt", header: "Last reviewed", render: (r) => <span className="text-gray-400">{formatDate(r.lastReviewedAt)}</span> },
     {
@@ -126,24 +125,28 @@ export default function Catalogue() {
       />
 
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-400">
-          <span>Catalogue</span>
-          <span>/</span>
-          <span className="text-gray-600">{title}</span>
-        </div>
+        {filter.view !== "all" && (
+          <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-400">
+            <span>Catalogue</span>
+            <span>/</span>
+            <span className="text-gray-600">{title}</span>
+          </div>
+        )}
 
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setFilter({ view: "all", status: null, typeId: null })}
-              className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
-            >
-              <ArrowLeft size={17} />
-            </button>
+            {filter.view !== "all" && (
+              <button
+                onClick={() => setFilter({ view: "all", status: null, typeId: null })}
+                className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
+              >
+                <ArrowLeft size={17} />
+              </button>
+            )}
             <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
           </div>
           <button className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
-            + Create
+            + Create new
           </button>
         </div>
 

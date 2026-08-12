@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, STATUS_LIST, LOCALE_LIST } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
@@ -12,6 +12,7 @@ export default function ContentDetail() {
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [workflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const users = seedUsers();
 
   const entry = entries.find((e) => e.id === id);
@@ -74,12 +75,12 @@ export default function ContentDetail() {
               onChange={(e) => update({ status: e.target.value })}
               className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm"
             >
-              {STATUS_LIST.map((s) => (
-                <option key={s} value={s}>{s}</option>
+              {workflowSteps.map((s) => (
+                <option key={s.id} value={s.name}>{s.name}</option>
               ))}
             </select>
             <div className="mt-2">
-              <StatusPill status={entry.status} />
+              <StatusPill status={entry.status} color={workflowSteps.find((s) => s.name === entry.status)?.color} />
             </div>
           </DetailField>
           <DetailField label="Content type">

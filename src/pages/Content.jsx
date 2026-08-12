@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, STATUS_LIST, LOCALE_LIST } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -22,6 +22,7 @@ export default function Content() {
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [workflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
@@ -34,9 +35,10 @@ export default function Content() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftType, setDraftType] = useState(contentTypes[0]?.id);
 
-  const statuses = STATUS_LIST.map((name) => ({
-    name,
-    count: entries.filter((e) => e.status === name).length,
+  const statuses = workflowSteps.map((step) => ({
+    name: step.name,
+    color: step.color,
+    count: entries.filter((e) => e.status === step.name).length,
   }));
 
   const filterValues = { status: filter.status, contentTypeId: filter.typeId, ...extraFilters };
@@ -53,7 +55,7 @@ export default function Content() {
   }
 
   const filterFields = [
-    { key: "status", label: "Status", options: STATUS_LIST.map((s) => ({ value: s, label: s })) },
+    { key: "status", label: "Status", options: workflowSteps.map((s) => ({ value: s.name, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
     { key: "locale", label: "Locale", options: LOCALE_LIST.map((l) => ({ value: l, label: l.toUpperCase() })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
@@ -72,7 +74,7 @@ export default function Content() {
     if (!draftTitle.trim()) return;
     const id = `e${Date.now()}`;
     setEntries([
-      { id, title: draftTitle.trim(), contentTypeId: draftType, status: "Draft", locale: "en", updatedAt: "2026-08-12T18:00:00", updatedBy: usersById && users[0].id },
+      { id, title: draftTitle.trim(), contentTypeId: draftType, status: workflowSteps[0]?.name, locale: "en", updatedAt: "2026-08-12T18:00:00", updatedBy: usersById && users[0].id },
       ...entries,
     ]);
     setDraftTitle("");
@@ -123,7 +125,7 @@ export default function Content() {
       key: "status",
       header: "Status",
       sortValue: (r) => r.status,
-      render: (r) => <StatusPill status={r.status} />,
+      render: (r) => <StatusPill status={r.status} color={workflowSteps.find((s) => s.name === r.status)?.color} />,
     },
   ];
 
@@ -146,7 +148,7 @@ export default function Content() {
               onClick={() => setAdding((v) => !v)}
               className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
             >
-              <Plus size={15} /> Add entry
+              <Plus size={15} /> Create new
             </button>
           </div>
         </div>

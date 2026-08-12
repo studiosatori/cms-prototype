@@ -5,7 +5,18 @@ const STYLES = {
   Archived: "bg-gray-100 text-gray-600 ring-gray-500/20 before:bg-gray-400",
 };
 
-export default function StatusPill({ status }) {
+export default function StatusPill({ status, color }) {
+  if (color) {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+        style={{ backgroundColor: color + "1a", color, "--tw-ring-color": color + "40" }}
+      >
+        <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+        {status}
+      </span>
+    );
+  }
   const cls = STYLES[status] || STYLES.Archived;
   return (
     <span

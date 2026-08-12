@@ -15,6 +15,15 @@ const CONTENT_TYPES = [
 
 const STATUSES = ["Published", "Draft", "Changed", "Archived"];
 const LOCALES = ["en", "cs", "de"];
+const WORKFLOW_STEPS = [
+  { id: "wf1", name: "Draft", color: "#9ca3af" },
+  { id: "wf2", name: "Copywriting", color: "#f59e0b" },
+  { id: "wf3", name: "Media", color: "#0ea5e9" },
+  { id: "wf4", name: "Review 1", color: "#8b5cf6" },
+  { id: "wf5", name: "Review 2", color: "#d946ef" },
+  { id: "wf6", name: "Ready", color: "#3b82f6" },
+  { id: "wf7", name: "Published", color: "#10b981" },
+];
 
 function pick(arr, i) {
   return arr[i % arr.length];
@@ -39,6 +48,17 @@ const ENTRY_NAMES = [
   "SEO, water bottle", "New arrivals — autumn", "Customer stories", "Size guide",
 ];
 
+function pickEntryStatus(i) {
+  const last = WORKFLOW_STEPS.length - 1;
+  if (i % 17 === 0) return WORKFLOW_STEPS[1]?.name ?? WORKFLOW_STEPS[0].name;
+  if (i % 13 === 0) return WORKFLOW_STEPS[2]?.name ?? WORKFLOW_STEPS[0].name;
+  if (i % 11 === 0) return WORKFLOW_STEPS[Math.min(3, last)].name;
+  if (i % 9 === 0) return WORKFLOW_STEPS[Math.min(4, last)].name;
+  if (i % 7 === 0) return WORKFLOW_STEPS[Math.min(5, last)].name;
+  if (i % 5 === 0) return WORKFLOW_STEPS[0].name;
+  return WORKFLOW_STEPS[last].name;
+}
+
 export function seedEntries() {
   return ENTRY_NAMES.map((name, i) => {
     const typeIdx = name.startsWith("SEO") ? 2 : name.startsWith("Hero") ? 3
@@ -48,7 +68,7 @@ export function seedEntries() {
       id: `e${i + 1}`,
       title: name,
       contentTypeId: CONTENT_TYPES[typeIdx % CONTENT_TYPES.length].id,
-      status: pick(STATUSES, i % 9 === 0 ? 1 : i % 11 === 0 ? 2 : 0),
+      status: pickEntryStatus(i),
       locale: pick(LOCALES, i),
       updatedAt: daysAgo(i % 10),
       updatedBy: pick(USERS, i).id,
@@ -152,3 +172,4 @@ export function getUser(id) {
 export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
 export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean"];
+export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;

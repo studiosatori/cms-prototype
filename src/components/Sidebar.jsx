@@ -2,7 +2,7 @@ import { List, Clock, CalendarClock, Bookmark, Folder, FileText, Gem, Newspaper 
 
 const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
-function Item({ icon: Icon, label, count, active, onClick, dim }) {
+function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
   return (
     <button
       onClick={onClick}
@@ -10,7 +10,11 @@ function Item({ icon: Icon, label, count, active, onClick, dim }) {
         active ? "bg-gray-100 font-medium text-gray-900" : "text-gray-600 hover:bg-gray-50"
       }`}
     >
-      {Icon && <Icon size={15} className={dim ? "text-gray-400" : "text-gray-500"} />}
+      {color ? (
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+      ) : (
+        Icon && <Icon size={15} className={dim ? "text-gray-400" : "text-gray-500"} />
+      )}
       <span className="flex-1 truncate">{label}</span>
       {count !== undefined && <span className="text-xs text-gray-400">{count}</span>}
     </button>
@@ -42,6 +46,7 @@ export default function Sidebar({
             <Item
               key={s.name}
               icon={Folder}
+              color={s.color}
               label={s.name}
               count={s.count}
               active={filter.status === s.name}
