@@ -48,7 +48,7 @@ export default function ContentDetail() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => update({ title: title.trim() || entry.title })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
           <DetailField label="Slug">
@@ -64,7 +64,7 @@ export default function ContentDetail() {
               placeholder="Rich text content goes here…"
               defaultValue={entry.body ?? ""}
               onBlur={(e) => update({ body: e.target.value })}
-              className="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
         </div>
@@ -74,7 +74,7 @@ export default function ContentDetail() {
             <select
               value={entry.status}
               onChange={(e) => update({ status: e.target.value })}
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm"
+              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >
               {workflowSteps.map((s) => (
                 <option key={s.id} value={s.name}>{s.name}</option>
@@ -91,7 +91,7 @@ export default function ContentDetail() {
             <select
               value={entry.locale}
               onChange={(e) => update({ locale: e.target.value })}
-              className="w-full rounded-md border border-gray-300 px-2.5 py-1.5 text-sm uppercase"
+              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm uppercase"
             >
               {LOCALE_LIST.map((l) => (
                 <option key={l} value={l}>{l}</option>

@@ -14,12 +14,12 @@ const TABS = [
 export default function TopNav() {
   const me = seedUsers()[0];
   return (
-    <header className="flex h-14 shrink-0 items-center gap-1 border-b border-gray-200 bg-white px-4">
-      <div className="flex items-center gap-2 pr-4 mr-2 border-r border-gray-200">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-black font-serif text-lg leading-none text-white">
+    <header className="flex h-16 shrink-0 items-center gap-1 border-b border-gray-200 bg-white px-4">
+      <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-gray-200">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-black font-serif text-xl leading-none text-white">
           P
         </div>
-        <span className="text-sm font-semibold tracking-tight text-gray-900">PCT admin</span>
+        <span className="whitespace-nowrap font-serif text-xl font-semibold tracking-tight text-gray-900">PCT admin</span>
       </div>
 
       <nav className="flex items-center gap-1">

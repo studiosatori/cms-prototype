@@ -56,7 +56,7 @@ export default function ContentTypeDetail() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={() => update({ name: name.trim() || type.name })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
 
@@ -69,16 +69,16 @@ export default function ContentTypeDetail() {
             </div>
             <div className="space-y-2">
               {type.fields.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-md border border-gray-200 p-2">
+                <div key={i} className="flex items-center gap-2 rounded-md border border-gray-200 bg-white p-2">
                   <input
                     value={f.name}
                     onChange={(e) => updateField(i, { name: e.target.value })}
-                    className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-sm"
+                    className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
                   />
                   <select
                     value={f.type}
                     onChange={(e) => updateField(i, { type: e.target.value })}
-                    className="rounded-md border border-gray-200 px-2 py-1 text-sm"
+                    className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
                   >
                     {FIELD_TYPE_LIST.map((ft) => (
                       <option key={ft} value={ft}>{ft}</option>

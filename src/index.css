@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Fraunces", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 }
 
 html, body, #root {
@@ -9,7 +10,7 @@ html, body, #root {
 }
 
 body {
-  background-color: #f7f7f8;
+  background-color: #f8f7f4;
   color: #1a1a1e;
 }
 

@@ -31,7 +31,7 @@ function GeneralPanel() {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
         />
       </div>
       <div>
@@ -39,7 +39,7 @@ function GeneralPanel() {
         <select
           value={locale}
           onChange={(e) => setLocale(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
         >
           <option value="en">English (en)</option>
           <option value="cs">Czech (cs)</option>
@@ -105,7 +105,7 @@ function WorkflowPanel() {
 
       <div className="space-y-2">
         {steps.map((s, i) => (
-          <div key={s.id} className="space-y-2 rounded-md border border-gray-200 p-2">
+          <div key={s.id} className="space-y-2 rounded-md border border-gray-200 bg-white p-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
                 {i + 1}
@@ -113,7 +113,7 @@ function WorkflowPanel() {
               <input
                 value={s.name}
                 onChange={(e) => updateStep(i, { name: e.target.value })}
-                className="flex-1 rounded-md border border-gray-200 px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                className="flex-1 rounded-md border border-gray-200 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
               />
               <button
                 onClick={() => moveStep(i, -1)}
@@ -194,7 +194,7 @@ function UsersPanel() {
           value={r.role}
           onChange={(e) => setRole(r.id, e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="rounded-md border border-gray-200 px-2 py-1 text-sm"
+          className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
         >
           {ROLES.map((role) => (
             <option key={role} value={role}>{role}</option>

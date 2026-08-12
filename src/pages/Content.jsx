@@ -175,12 +175,12 @@ export default function Content() {
               onChange={(e) => setDraftTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addEntry()}
               placeholder="Entry title…"
-              className="flex-1 rounded-md border border-gray-200 px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="flex-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
             />
             <select
               value={draftType}
               onChange={(e) => setDraftType(e.target.value)}
-              className="rounded-md border border-gray-200 px-2.5 py-1.5 text-sm"
+              className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-sm"
             >
               {contentTypes.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
