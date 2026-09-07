@@ -7,6 +7,7 @@ import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
+import Modal from "../components/Modal";
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
 
@@ -25,8 +26,11 @@ export default function ContentDetail() {
   const [title, setTitle] = useState(entry?.title ?? "");
   const [saveStatus, setSaveStatus] = useState("saved");
   const saveTimeoutRef = useRef(null);
+  const [pendingPublish, setPendingPublish] = useState(false);
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
+
+  const publishStepName = workflowSteps[workflowSteps.length - 1]?.name;
 
   if (!entry) {
     return (
@@ -50,6 +54,19 @@ export default function ContentDetail() {
     const current = entry.channels ?? [];
     const next = current.includes(channelId) ? current.filter((c) => c !== channelId) : [...current, channelId];
     update({ channels: next });
+  }
+
+  function handleStatusChange(value) {
+    if (value === publishStepName && value !== entry.status) {
+      setPendingPublish(true);
+      return;
+    }
+    update({ status: value });
+  }
+
+  function confirmPublish() {
+    update({ status: publishStepName });
+    setPendingPublish(false);
   }
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
@@ -91,7 +108,7 @@ export default function ContentDetail() {
           <DetailField label="Status">
             <select
               value={entry.status}
-              onChange={(e) => update({ status: e.target.value })}
+              onChange={(e) => handleStatusChange(e.target.value)}
               className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >
               {workflowSteps.map((s) => (
@@ -147,6 +164,47 @@ export default function ContentDetail() {
           </DetailField>
         </div>
       </div>
+
+      <Modal
+        open={pendingPublish}
+        onClose={() => setPendingPublish(false)}
+        title={`Publish "${entry.title}"?`}
+        footer={
+          <>
+            <button
+              onClick={() => setPendingPublish(false)}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmPublish}
+              className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+            >
+              OK
+            </button>
+          </>
+        }
+      >
+        <p className="mb-3">This entry will go live on:</p>
+        <div className="mb-3">
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Channels</p>
+          <div className="flex flex-wrap gap-1.5">
+            {channels
+              .filter((c) => (entry.channels ?? []).includes(c.id))
+              .map((c) => (
+                <StatusPill key={c.id} status={c.name} color={c.color} />
+              ))}
+            {(entry.channels ?? []).length === 0 && (
+              <span className="text-xs text-gray-400">No channels selected</span>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Locale</p>
+          <span className="text-sm font-medium uppercase text-gray-700">{entry.locale}</span>
+        </div>
+      </Modal>
     </div>
   );
 }
