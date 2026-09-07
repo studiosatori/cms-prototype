@@ -155,7 +155,7 @@ export default function Content() {
       header: "Channels",
       render: (r) =>
         isAllChannels(r.channels) ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
             All channels
           </span>
         ) : (
