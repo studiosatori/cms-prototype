@@ -1,0 +1,104 @@
+import { useParams } from "react-router-dom";
+import { useLocalStorage } from "../lib/storage";
+import {
+  seedEntries, seedContentTypes, seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
+  DEFAULT_CHANNELS, normalizeChannels,
+} from "../lib/seed";
+import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
+
+function DraftBanner({ compact }) {
+  return (
+    <div className={`bg-amber-400 text-center font-medium text-amber-950 ${compact ? "px-4 py-1 text-[11px]" : "px-4 py-1.5 text-xs"}`}>
+      Preview only — not published{compact ? "" : " yet"}
+    </div>
+  );
+}
+
+function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
+  return (
+    <div className="min-h-screen bg-white text-gray-900">
+      {!isPublished && <DraftBanner />}
+      <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+        <span className="font-serif text-lg font-semibold">{channel.name}</span>
+        <nav className="flex gap-5 text-sm text-gray-500">
+          <span>Home</span>
+          <span>Explore</span>
+          <span>Events</span>
+        </nav>
+      </header>
+      <main className="mx-auto max-w-2xl px-6 py-12">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
+        <h1 className="mb-4 text-3xl font-semibold tracking-tight">{entry.title}</h1>
+        <p className="mb-8 text-sm text-gray-400">
+          By {author?.name} · {entry.locale?.toUpperCase()}
+        </p>
+        <div className="space-y-4 text-gray-700">
+          {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">No body content yet.</p>}
+        </div>
+      </main>
+      <footer className="border-t border-gray-100 px-6 py-6 text-center text-xs text-gray-400">
+        © 2026 {channel.name}
+      </footer>
+    </div>
+  );
+}
+
+function AppMock({ entry, channel, isPublished, typeName }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
+      <div className="w-[360px] overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
+        <div className="flex items-center justify-between bg-gray-900 px-5 py-1 text-[10px] text-white">
+          <span>9:41</span>
+          <div className="flex items-center gap-1">
+            <Signal size={10} /> <Wifi size={10} /> <BatteryFull size={12} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
+          <ChevronLeft size={18} className="text-gray-400" />
+          <span className="text-sm font-semibold">{channel.name}</span>
+        </div>
+        {!isPublished && <DraftBanner compact />}
+        <div className="max-h-[560px] overflow-y-auto px-4 py-5">
+          <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
+          <h1 className="mb-3 text-xl font-semibold leading-snug">{entry.title}</h1>
+          <div className="space-y-3 text-sm text-gray-600">
+            {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">No body content yet.</p>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Preview() {
+  const { channelId, entryId } = useParams();
+  const [entries] = useLocalStorage("cms.entries", seedEntries);
+  const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
+  const workflowSteps = normalizeWorkflowSteps(rawWorkflowSteps);
+  const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
+  const channels = normalizeChannels(rawChannels);
+  const users = seedUsers();
+
+  const entry = entries.find((e) => e.id === entryId);
+  const channel = channels.find((c) => c.id === channelId) ?? channels[0];
+
+  if (!entry || !channel) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-gray-400">
+        Nothing to preview.
+      </div>
+    );
+  }
+
+  const type = contentTypes.find((t) => t.id === entry.contentTypeId);
+  const author = users.find((u) => u.id === entry.updatedBy);
+  const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
+  const isPublished = entry.status === publishStepId;
+
+  return channel.icon === "smartphone" ? (
+    <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type?.name} />
+  ) : (
+    <WebsiteMock entry={entry} channel={channel} isPublished={isPublished} author={author} typeName={type?.name} />
+  );
+}

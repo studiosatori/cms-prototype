@@ -11,6 +11,7 @@ import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
+import PreviewButton from "../components/PreviewButton";
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
 
@@ -113,7 +114,18 @@ export default function ContentDetail() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader crumbs={["Content", title || entry.title]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
+      <PageHeader
+        crumbs={["Content", title || entry.title]}
+        onBack={() => navigate(-1)}
+        saveStatus={saveStatus}
+        actions={
+          <PreviewButton
+            entryId={entry.id}
+            channels={channels}
+            defaultChannelId={channels.find((c) => c.icon === "globe")?.id ?? channels[0]?.id}
+          />
+        }
+      />
 
       <div className="flex gap-6">
         <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">

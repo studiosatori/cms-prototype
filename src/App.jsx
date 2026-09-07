@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import TopNav from "./components/TopNav";
 import Content from "./pages/Content";
 import ContentDetail from "./pages/ContentDetail";
@@ -10,8 +10,20 @@ import Taxonomies from "./pages/Taxonomies";
 import TaxonomyDetail from "./pages/TaxonomyDetail";
 import Media from "./pages/Media";
 import Settings from "./pages/Settings";
+import Preview from "./pages/Preview";
 
 export default function App() {
+  const location = useLocation();
+
+  // Preview renders a standalone mock site/app, not the CMS chrome.
+  if (location.pathname.startsWith("/preview")) {
+    return (
+      <Routes>
+        <Route path="/preview/:channelId/:entryId" element={<Preview />} />
+      </Routes>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col bg-[#f8f7f4]">
       <TopNav />
