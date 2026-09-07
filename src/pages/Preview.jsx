@@ -46,19 +46,19 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
 function AppMock({ entry, channel, isPublished, typeName }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
-      <div className="w-[360px] overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
-        <div className="flex items-center justify-between bg-gray-900 px-5 py-1 text-[10px] text-white">
+      <div className="flex h-[800px] w-[370px] flex-col overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
+        <div className="flex shrink-0 items-center justify-between bg-gray-900 px-5 py-1.5 text-[10px] text-white">
           <span>9:41</span>
           <div className="flex items-center gap-1">
             <Signal size={10} /> <Wifi size={10} /> <BatteryFull size={12} />
           </div>
         </div>
-        <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
+        <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 px-4 py-3">
           <ChevronLeft size={18} className="text-gray-400" />
           <span className="text-sm font-semibold">{channel.name}</span>
         </div>
         {!isPublished && <DraftBanner compact />}
-        <div className="max-h-[560px] overflow-y-auto px-4 py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-5">
           <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
           <h1 className="mb-3 text-xl font-semibold leading-snug">{entry.title}</h1>
           <div className="space-y-3 text-sm text-gray-600">
