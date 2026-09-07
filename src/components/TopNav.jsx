@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { FileText, Layers, Image, Settings as SettingsIcon } from "lucide-react";
+import { FileText, Layers, ListTree, Image, Settings as SettingsIcon } from "lucide-react";
 import Avatar from "./Avatar";
 import { seedUsers } from "../lib/seed";
 
@@ -8,6 +8,7 @@ const TABS = [
   // Hidden for now — out of scope. Re-add to bring Catalogue back into the nav.
   // { to: "/catalogue", label: "Catalogue", icon: LayoutGrid },
   { to: "/content-types", label: "Content types", icon: Layers },
+  { to: "/taxonomies", label: "Taxonomies", icon: ListTree },
   { to: "/media", label: "Media", icon: Image },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];

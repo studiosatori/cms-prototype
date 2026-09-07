@@ -237,6 +237,83 @@ export function seedContentTypes() {
   }));
 }
 
+function term(id, name, children = []) {
+  return { id, name, children };
+}
+
+const TAXONOMIES = [
+  {
+    id: "tax1",
+    name: "Location",
+    description: "Where in Prague this content relates to.",
+    terms: [
+      term("loc-prague", "Prague", [
+        term("loc-old-town", "Old Town"),
+        term("loc-new-town", "New Town"),
+        term("loc-vinohrady", "Vinohrady"),
+        term("loc-karlin", "Karlín"),
+      ]),
+      term("loc-brno", "Brno", [
+        term("loc-brno-center", "City Center"),
+      ]),
+    ],
+  },
+  {
+    id: "tax2",
+    name: "Event type",
+    description: "What kind of event or activity this is.",
+    terms: [
+      term("evt-culture", "Culture", [
+        term("evt-music", "Music"),
+        term("evt-theatre", "Theatre"),
+        term("evt-exhibition", "Exhibition"),
+      ]),
+      term("evt-sports", "Sports", [
+        term("evt-running", "Running"),
+        term("evt-cycling", "Cycling"),
+      ]),
+      term("evt-family", "Family"),
+    ],
+  },
+];
+
+export function seedTaxonomies() {
+  return TAXONOMIES;
+}
+
+export function countTerms(terms) {
+  return terms.reduce((sum, t) => sum + 1 + countTerms(t.children), 0);
+}
+
+export function updateTermInTree(terms, id, patch) {
+  return terms.map((t) =>
+    t.id === id ? { ...t, ...patch } : { ...t, children: updateTermInTree(t.children, id, patch) }
+  );
+}
+
+export function addTermToTree(terms, parentId, newTerm) {
+  if (parentId === null) return [...terms, newTerm];
+  return terms.map((t) =>
+    t.id === parentId ? { ...t, children: [...t.children, newTerm] } : { ...t, children: addTermToTree(t.children, parentId, newTerm) }
+  );
+}
+
+export function removeTermFromTree(terms, id) {
+  return terms.filter((t) => t.id !== id).map((t) => ({ ...t, children: removeTermFromTree(t.children, id) }));
+}
+
+export function moveTermInTree(terms, id, dir) {
+  const idx = terms.findIndex((t) => t.id === id);
+  if (idx !== -1) {
+    const j = idx + dir;
+    if (j < 0 || j >= terms.length) return terms;
+    const next = [...terms];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    return next;
+  }
+  return terms.map((t) => ({ ...t, children: moveTermInTree(t.children, id, dir) }));
+}
+
 export function seedUsers() {
   return USERS;
 }
@@ -247,7 +324,7 @@ export function getUser(id) {
 
 export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
-export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean"];
+export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean", "Taxonomy"];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;
 export const DEFAULT_CHANNELS = CHANNELS;

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Trash2, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedContentTypes, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 
@@ -12,6 +12,7 @@ export default function ContentTypeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
 
   const type = contentTypes.find((t) => t.id === id);
   const [name, setName] = useState(type?.name ?? "");
@@ -76,7 +77,7 @@ export default function ContentTypeDetail() {
             </div>
             <div className="space-y-2">
               {type.fields.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-md border border-gray-200 bg-white p-2">
+                <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-gray-200 bg-white p-2">
                   <input
                     value={f.name}
                     onChange={(e) => updateField(i, { name: e.target.value })}
@@ -84,13 +85,31 @@ export default function ContentTypeDetail() {
                   />
                   <select
                     value={f.type}
-                    onChange={(e) => updateField(i, { type: e.target.value })}
+                    onChange={(e) => {
+                      const nextType = e.target.value;
+                      updateField(i, {
+                        type: nextType,
+                        taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
+                      });
+                    }}
                     className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
                   >
                     {FIELD_TYPE_LIST.map((ft) => (
                       <option key={ft} value={ft}>{ft}</option>
                     ))}
                   </select>
+                  {f.type === "Taxonomy" && (
+                    <select
+                      value={f.taxonomyId ?? ""}
+                      onChange={(e) => updateField(i, { taxonomyId: e.target.value })}
+                      className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-sm text-violet-700"
+                    >
+                      <option value="" disabled>Choose taxonomy…</option>
+                      {taxonomies.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  )}
                   <button onClick={() => removeField(i)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
                     <Trash2 size={14} />
                   </button>

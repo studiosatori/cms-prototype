@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedContentTypes, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
 
@@ -11,6 +11,8 @@ const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 export default function ContentTypes() {
   const navigate = useNavigate();
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
+  const taxonomiesById = Object.fromEntries(taxonomies.map((t) => [t.id, t]));
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [filterValues, setFilterValues] = useState({ fieldType: null });
@@ -48,7 +50,10 @@ export default function ContentTypes() {
           {r.fields.map((f) => (
             <span key={f.name} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
               {f.name}
-              <span className="text-gray-400"> · {f.type}</span>
+              <span className="text-gray-400">
+                {" "}· {f.type}
+                {f.type === "Taxonomy" && f.taxonomyId && ` (${taxonomiesById[f.taxonomyId]?.name ?? "?"})`}
+              </span>
             </span>
           ))}
         </div>

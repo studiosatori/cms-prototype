@@ -6,6 +6,8 @@ import Catalogue from "./pages/Catalogue";
 import CatalogueItemDetail from "./pages/CatalogueItemDetail";
 import ContentTypes from "./pages/ContentTypes";
 import ContentTypeDetail from "./pages/ContentTypeDetail";
+import Taxonomies from "./pages/Taxonomies";
+import TaxonomyDetail from "./pages/TaxonomyDetail";
 import Media from "./pages/Media";
 import Settings from "./pages/Settings";
 
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/catalogue/item/:id" element={<CatalogueItemDetail />} />
           <Route path="/content-types" element={<ContentTypes />} />
           <Route path="/content-types/:id" element={<ContentTypeDetail />} />
+          <Route path="/taxonomies" element={<Taxonomies />} />
+          <Route path="/taxonomies/:id" element={<TaxonomyDetail />} />
           <Route path="/media" element={<Media />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
