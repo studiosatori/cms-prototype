@@ -20,7 +20,7 @@ export default function TopNav() {
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-black font-serif text-xl leading-none text-white">
           P
         </div>
-        <span className="whitespace-nowrap font-serif text-xl font-semibold tracking-tight text-gray-900">pct admin</span>
+        <span className="whitespace-nowrap font-serif text-xl font-semibold tracking-tight text-gray-900">Prague CMS</span>
       </div>
 
       <nav className="flex items-center gap-1">
