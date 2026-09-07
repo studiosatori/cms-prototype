@@ -42,8 +42,8 @@ export default function Content() {
     if (needsFix) setEntries(displayEntries);
   }, [entries, displayEntries]);
 
-  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null });
-  const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null, channel: null });
+  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null, channelId: null });
+  const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [adding, setAdding] = useState(false);
@@ -57,17 +57,18 @@ export default function Content() {
     count: displayEntries.filter((e) => e.status === step.id).length,
   }));
 
-  const filterValues = { status: filter.status, contentTypeId: filter.typeId, ...extraFilters };
+  const filterValues = { status: filter.status, contentTypeId: filter.typeId, channel: filter.channelId, ...extraFilters };
 
   function handleFilterChange(key, value) {
-    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null });
-    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value });
+    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null, channelId: null });
+    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value, channelId: null });
+    if (key === "channel") return setFilter({ view: value ? "channel" : "all", status: null, typeId: null, channelId: value });
     setExtraFilters((v) => ({ ...v, [key]: value }));
   }
 
   function clearFilters() {
-    setFilter({ view: "all", status: null, typeId: null });
-    setExtraFilters({ locale: null, updatedBy: null, channel: null });
+    setFilter({ view: "all", status: null, typeId: null, channelId: null });
+    setExtraFilters({ locale: null, updatedBy: null });
   }
 
   const filterFields = [
@@ -84,7 +85,7 @@ export default function Content() {
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;
     if (extraFilters.locale && e.locale !== extraFilters.locale) return false;
     if (extraFilters.updatedBy && e.updatedBy !== extraFilters.updatedBy) return false;
-    if (extraFilters.channel && !resolvePublishedChannelIds(e.channels, channels).includes(extraFilters.channel)) return false;
+    if (filter.channelId && !resolvePublishedChannelIds(e.channels, channels).includes(filter.channelId)) return false;
     if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -177,6 +178,13 @@ export default function Content() {
         statuses={statuses}
         typeGroupLabel="Content type"
         typeItems={contentTypes.map((t) => ({ id: t.id, name: t.name, count: t.entryCount, icon: t.icon }))}
+        channelGroupLabel="Channel"
+        channelItems={channels.map((c) => ({
+          id: c.id,
+          name: c.name,
+          color: c.color,
+          count: displayEntries.filter((e) => resolvePublishedChannelIds(e.channels, channels).includes(c.id)).length,
+        }))}
         filter={filter}
         onFilter={(f) => { setFilter(f); setSearch(""); }}
       />
