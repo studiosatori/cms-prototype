@@ -4,7 +4,7 @@ import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock } from "lucide
 import { useLocalStorage } from "../lib/storage";
 import {
   seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
-  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, getOmittedChannelIds, resolvePublishedChannelIds,
+  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -77,16 +77,8 @@ export default function ContentDetail() {
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
-  function toggleChannel(channelId) {
-    if (isAllChannels(entry.channels)) {
-      update({ channels: [channelId] });
-      return;
-    }
-    const omitted = getOmittedChannelIds(entry.channels);
-    const nextOmitted = omitted.includes(channelId)
-      ? omitted.filter((c) => c !== channelId)
-      : [...omitted, channelId];
-    update({ channels: nextOmitted.length === 0 ? ALL_CHANNELS : nextOmitted });
+  function selectChannel(channelId) {
+    update({ channels: channelId });
   }
 
   function setAllChannels() {
@@ -200,7 +192,7 @@ export default function ContentDetail() {
                 return (
                   <button
                     key={c.id}
-                    onClick={() => toggleChannel(c.id)}
+                    onClick={() => selectChannel(c.id)}
                     className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors"
                     style={
                       active
