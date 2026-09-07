@@ -23,6 +23,7 @@ function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
 
 export default function Sidebar({
   allLabel = "All content",
+  statusGroupLabel = "Status",
   statuses,
   typeGroupLabel = "Content type",
   typeItems,
@@ -40,17 +41,17 @@ export default function Sidebar({
       </div>
 
       <div>
-        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">Status</p>
+        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{statusGroupLabel}</p>
         <div className="space-y-0.5">
           {statuses.map((s) => (
             <Item
-              key={s.name}
+              key={s.id ?? s.name}
               icon={Folder}
               color={s.color}
               label={s.name}
               count={s.count}
-              active={filter.status === s.name}
-              onClick={() => onFilter({ view: "status", status: s.name, typeId: null })}
+              active={filter.status === (s.id ?? s.name)}
+              onClick={() => onFilter({ view: "status", status: s.id ?? s.name, typeId: null })}
             />
           ))}
         </div>

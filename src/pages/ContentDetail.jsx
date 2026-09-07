@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
+import {
+  seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
+  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, getOmittedChannelIds, resolvePublishedChannelIds,
+} from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
@@ -10,6 +13,18 @@ import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
 
 const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
+
+function defaultScheduleValue() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(9, 0, 0, 0);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatScheduled(iso) {
+  return new Date(iso).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 
 export default function ContentDetail() {
   const { id } = useParams();
@@ -27,10 +42,12 @@ export default function ContentDetail() {
   const [saveStatus, setSaveStatus] = useState("saved");
   const saveTimeoutRef = useRef(null);
   const [pendingPublish, setPendingPublish] = useState(false);
+  const [publishMode, setPublishMode] = useState("now");
+  const [scheduledAt, setScheduledAt] = useState("");
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
-  const publishStepName = workflowSteps[workflowSteps.length - 1]?.name;
+  const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
 
   if (!entry) {
     return (
@@ -51,13 +68,25 @@ export default function ContentDetail() {
   }
 
   function toggleChannel(channelId) {
-    const current = entry.channels ?? [];
-    const next = current.includes(channelId) ? current.filter((c) => c !== channelId) : [...current, channelId];
-    update({ channels: next });
+    if (isAllChannels(entry.channels)) {
+      update({ channels: [channelId] });
+      return;
+    }
+    const omitted = getOmittedChannelIds(entry.channels);
+    const nextOmitted = omitted.includes(channelId)
+      ? omitted.filter((c) => c !== channelId)
+      : [...omitted, channelId];
+    update({ channels: nextOmitted.length === 0 ? ALL_CHANNELS : nextOmitted });
+  }
+
+  function setAllChannels() {
+    update({ channels: ALL_CHANNELS });
   }
 
   function handleStatusChange(value) {
-    if (value === publishStepName && value !== entry.status) {
+    if (value === publishStepId && value !== entry.status) {
+      setPublishMode("now");
+      setScheduledAt(defaultScheduleValue());
       setPendingPublish(true);
       return;
     }
@@ -65,12 +94,19 @@ export default function ContentDetail() {
   }
 
   function confirmPublish() {
-    update({ status: publishStepName });
+    if (publishMode === "schedule" && scheduledAt) {
+      update({ scheduledPublishAt: new Date(scheduledAt).toISOString() });
+    } else {
+      update({ status: publishStepId, scheduledPublishAt: null });
+    }
     setPendingPublish(false);
   }
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
   const author = users.find((u) => u.id === entry.updatedBy);
+  const currentStep = workflowSteps.find((s) => s.id === entry.status);
+  const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
+  const entryIsAllChannels = isAllChannels(entry.channels);
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
@@ -112,21 +148,44 @@ export default function ContentDetail() {
               className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >
               {workflowSteps.map((s) => (
-                <option key={s.id} value={s.name}>{s.name}</option>
+                <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
             <div className="mt-2">
-              <StatusPill status={entry.status} color={workflowSteps.find((s) => s.name === entry.status)?.color} />
+              <StatusPill status={currentStep?.name ?? entry.status} color={currentStep?.color} />
             </div>
+            {entry.scheduledPublishAt && (
+              <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+                <Clock size={12} />
+                Scheduled for {formatScheduled(entry.scheduledPublishAt)}
+                <button
+                  onClick={() => update({ scheduledPublishAt: null })}
+                  className="font-medium text-violet-600 hover:underline"
+                >
+                  Cancel
+                </button>
+              </p>
+            )}
           </DetailField>
           <DetailField label="Content type">
             <span className="text-sm text-gray-700">{type?.name}</span>
           </DetailField>
           <DetailField label="Channels">
             <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={setAllChannels}
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors"
+                style={
+                  entryIsAllChannels
+                    ? { backgroundColor: "#111827", color: "#fff", "--tw-ring-color": "#111827" }
+                    : { backgroundColor: "transparent", color: "#9ca3af", "--tw-ring-color": "#d1d5db" }
+                }
+              >
+                All channels
+              </button>
               {channels.map((c) => {
                 const Icon = CHANNEL_ICONS[c.icon] || Radio;
-                const active = (entry.channels ?? []).includes(c.id);
+                const active = publishedChannelIds.includes(c.id);
                 return (
                   <button
                     key={c.id}
@@ -186,19 +245,60 @@ export default function ContentDetail() {
           </>
         }
       >
-        <p className="mb-3">This entry will go live on:</p>
+        <div className="mb-4 flex gap-2">
+          <button
+            onClick={() => setPublishMode("now")}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
+              publishMode === "now" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            Publish now
+          </button>
+          <button
+            onClick={() => setPublishMode("schedule")}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
+              publishMode === "schedule" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            Schedule
+          </button>
+        </div>
+
+        {publishMode === "schedule" && (
+          <div className="mb-4">
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">Publish date &amp; time</label>
+            <input
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(e) => setScheduledAt(e.target.value)}
+              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+            />
+          </div>
+        )}
+
+        <p className="mb-3">
+          {publishMode === "schedule"
+            ? "At the scheduled time, this entry will go live on:"
+            : "This entry will go live now on:"}
+        </p>
         <div className="mb-3">
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Channels</p>
-          <div className="flex flex-wrap gap-1.5">
-            {channels
-              .filter((c) => (entry.channels ?? []).includes(c.id))
-              .map((c) => (
-                <StatusPill key={c.id} status={c.name} color={c.color} />
-              ))}
-            {(entry.channels ?? []).length === 0 && (
-              <span className="text-xs text-gray-400">No channels selected</span>
-            )}
-          </div>
+          {entryIsAllChannels ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+              All channels
+            </span>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {channels
+                .filter((c) => publishedChannelIds.includes(c.id))
+                .map((c) => (
+                  <StatusPill key={c.id} status={c.name} color={c.color} />
+                ))}
+              {publishedChannelIds.length === 0 && (
+                <span className="text-xs text-gray-400">No channels selected</span>
+              )}
+            </div>
+          )}
         </div>
         <div>
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Locale</p>

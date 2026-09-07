@@ -63,6 +63,25 @@ export function normalizeChannels(channels) {
   }));
 }
 
+// An entry's `channels` field is either the sentinel "ALL" (publish everywhere,
+// including channels added later) or an array of channel ids to OMIT from "ALL".
+// This keeps "all channels" entries automatically picking up newly added channels
+// instead of needing every entry backfilled.
+export const ALL_CHANNELS = "ALL";
+
+export function isAllChannels(value) {
+  return value == null || value === ALL_CHANNELS;
+}
+
+export function getOmittedChannelIds(value) {
+  return isAllChannels(value) ? [] : (Array.isArray(value) ? value : []);
+}
+
+export function resolvePublishedChannelIds(value, allChannels) {
+  const omitted = getOmittedChannelIds(value);
+  return allChannels.filter((c) => !omitted.includes(c.id)).map((c) => c.id);
+}
+
 function pick(arr, i) {
   return arr[i % arr.length];
 }
@@ -88,19 +107,19 @@ const ENTRY_NAMES = [
 
 function pickEntryStatus(i) {
   const last = WORKFLOW_STEPS.length - 1;
-  if (i % 17 === 0) return WORKFLOW_STEPS[1]?.name ?? WORKFLOW_STEPS[0].name;
-  if (i % 13 === 0) return WORKFLOW_STEPS[2]?.name ?? WORKFLOW_STEPS[0].name;
-  if (i % 11 === 0) return WORKFLOW_STEPS[Math.min(3, last)].name;
-  if (i % 9 === 0) return WORKFLOW_STEPS[Math.min(4, last)].name;
-  if (i % 7 === 0) return WORKFLOW_STEPS[Math.min(5, last)].name;
-  if (i % 5 === 0) return WORKFLOW_STEPS[0].name;
-  return WORKFLOW_STEPS[last].name;
+  if (i % 17 === 0) return WORKFLOW_STEPS[1]?.id ?? WORKFLOW_STEPS[0].id;
+  if (i % 13 === 0) return WORKFLOW_STEPS[2]?.id ?? WORKFLOW_STEPS[0].id;
+  if (i % 11 === 0) return WORKFLOW_STEPS[Math.min(3, last)].id;
+  if (i % 9 === 0) return WORKFLOW_STEPS[Math.min(4, last)].id;
+  if (i % 7 === 0) return WORKFLOW_STEPS[Math.min(5, last)].id;
+  if (i % 5 === 0) return WORKFLOW_STEPS[0].id;
+  return WORKFLOW_STEPS[last].id;
 }
 
 function pickEntryChannels(i) {
-  if (i % 6 === 0) return ["ch1"];
-  if (i % 8 === 0) return ["ch2"];
-  return ["ch1", "ch2"];
+  if (i % 6 === 0) return ["ch2"]; // omit PCT website — MyPrague app only
+  if (i % 8 === 0) return ["ch1"]; // omit MyPrague app — PCT website only
+  return ALL_CHANNELS;
 }
 
 export function seedEntries() {
