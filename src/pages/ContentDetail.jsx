@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
+
+const CHANNEL_ICONS = { smartphone: Smartphone, globe: Globe, radio: Radio, tv: Tv, mail: Mail, "message-square": MessageSquare };
 
 export default function ContentDetail() {
   const { id } = useParams();
@@ -14,6 +17,8 @@ export default function ContentDetail() {
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
+  const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
+  const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
   const users = seedUsers();
 
   const entry = entries.find((e) => e.id === id);
@@ -32,6 +37,12 @@ export default function ContentDetail() {
 
   function update(patch) {
     setEntries(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+  }
+
+  function toggleChannel(channelId) {
+    const current = entry.channels ?? [];
+    const next = current.includes(channelId) ? current.filter((c) => c !== channelId) : [...current, channelId];
+    update({ channels: next });
   }
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
@@ -86,6 +97,29 @@ export default function ContentDetail() {
           </DetailField>
           <DetailField label="Content type">
             <span className="text-sm text-gray-700">{type?.name}</span>
+          </DetailField>
+          <DetailField label="Channels">
+            <div className="flex flex-wrap gap-1.5">
+              {channels.map((c) => {
+                const Icon = CHANNEL_ICONS[c.icon] || Radio;
+                const active = (entry.channels ?? []).includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => toggleChannel(c.id)}
+                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors"
+                    style={
+                      active
+                        ? { backgroundColor: c.color, color: "#fff", "--tw-ring-color": c.color }
+                        : { backgroundColor: "transparent", color: "#9ca3af", "--tw-ring-color": "#d1d5db" }
+                    }
+                  >
+                    <Icon size={12} />
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
           </DetailField>
           <DetailField label="Locale">
             <select

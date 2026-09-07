@@ -48,6 +48,21 @@ export function normalizeWorkflowSteps(steps) {
   );
 }
 
+const CHANNELS = [
+  { id: "ch1", name: "MyPrague app", icon: "smartphone", color: WORKFLOW_COLORS[6] },
+  { id: "ch2", name: "PCT website", icon: "globe", color: WORKFLOW_COLORS[7] },
+];
+
+export function normalizeChannels(channels) {
+  if (!Array.isArray(channels) || channels.length === 0) return CHANNELS;
+  return channels.map((c, i) => ({
+    id: c.id ?? `channel-${i}`,
+    name: c.name,
+    icon: c.icon ?? "radio",
+    color: c.color ?? WORKFLOW_COLORS[i % WORKFLOW_COLORS.length],
+  }));
+}
+
 function pick(arr, i) {
   return arr[i % arr.length];
 }
@@ -82,6 +97,12 @@ function pickEntryStatus(i) {
   return WORKFLOW_STEPS[last].name;
 }
 
+function pickEntryChannels(i) {
+  if (i % 6 === 0) return ["ch1"];
+  if (i % 8 === 0) return ["ch2"];
+  return ["ch1", "ch2"];
+}
+
 export function seedEntries() {
   return ENTRY_NAMES.map((name, i) => {
     const typeIdx = name.startsWith("SEO") ? 2 : name.startsWith("Hero") ? 3
@@ -93,6 +114,7 @@ export function seedEntries() {
       contentTypeId: CONTENT_TYPES[typeIdx % CONTENT_TYPES.length].id,
       status: pickEntryStatus(i),
       locale: pick(LOCALES, i),
+      channels: pickEntryChannels(i),
       updatedAt: daysAgo(i % 10),
       updatedBy: pick(USERS, i).id,
     };
@@ -197,3 +219,4 @@ export const LOCALE_LIST = LOCALES;
 export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean"];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;
+export const DEFAULT_CHANNELS = CHANNELS;

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -24,12 +24,15 @@ export default function Content() {
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
+  const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
+  const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
+  const channelsById = useMemo(() => Object.fromEntries(channels.map((c) => [c.id, c])), [channels]);
   const users = useMemo(() => seedUsers(), []);
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
 
   const [filter, setFilter] = useState({ view: "all", status: null, typeId: null });
-  const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null });
+  const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null, channel: null });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [adding, setAdding] = useState(false);
@@ -52,12 +55,13 @@ export default function Content() {
 
   function clearFilters() {
     setFilter({ view: "all", status: null, typeId: null });
-    setExtraFilters({ locale: null, updatedBy: null });
+    setExtraFilters({ locale: null, updatedBy: null, channel: null });
   }
 
   const filterFields = [
     { key: "status", label: "Status", options: workflowSteps.map((s) => ({ value: s.name, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
+    { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
     { key: "locale", label: "Locale", options: LOCALE_LIST.map((l) => ({ value: l, label: l.toUpperCase() })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
@@ -67,6 +71,7 @@ export default function Content() {
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;
     if (extraFilters.locale && e.locale !== extraFilters.locale) return false;
     if (extraFilters.updatedBy && e.updatedBy !== extraFilters.updatedBy) return false;
+    if (extraFilters.channel && !(e.channels ?? []).includes(extraFilters.channel)) return false;
     if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -75,7 +80,7 @@ export default function Content() {
     if (!draftTitle.trim()) return;
     const id = `e${Date.now()}`;
     setEntries([
-      { id, title: draftTitle.trim(), contentTypeId: draftType, status: workflowSteps[0]?.name, locale: "en", updatedAt: "2026-08-12T18:00:00", updatedBy: usersById && users[0].id },
+      { id, title: draftTitle.trim(), contentTypeId: draftType, status: workflowSteps[0]?.name, locale: "en", channels: channels.map((c) => c.id), updatedAt: "2026-08-12T18:00:00", updatedBy: usersById && users[0].id },
       ...entries,
     ]);
     setDraftTitle("");
@@ -127,6 +132,19 @@ export default function Content() {
       header: "Status",
       sortValue: (r) => r.status,
       render: (r) => <StatusPill status={r.status} color={workflowSteps.find((s) => s.name === r.status)?.color} />,
+    },
+    {
+      key: "channels",
+      header: "Channels",
+      render: (r) => (
+        <div className="flex flex-wrap gap-1">
+          {(r.channels ?? []).map((cid) => {
+            const c = channelsById[cid];
+            if (!c) return null;
+            return <StatusPill key={cid} status={c.name} color={c.color} />;
+          })}
+        </div>
+      ),
     },
   ];
 
