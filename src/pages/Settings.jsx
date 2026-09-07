@@ -378,7 +378,7 @@ export default function Settings() {
     <div className="flex h-full min-h-0">
       <aside className="w-56 shrink-0 border-r border-gray-200 bg-white p-3">
         <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Settings</p>
-        <div className="space-y-0.5">
+        <div className="space-y-2">
           {TABS.map((t) => (
             <button
               key={t.id}
