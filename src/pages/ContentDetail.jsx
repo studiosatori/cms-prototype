@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import {
-  seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
+  seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, getOmittedChannelIds, resolvePublishedChannelIds,
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
@@ -47,6 +47,16 @@ export default function ContentDetail() {
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
+  // Self-heal entries whose status predates the Workflow feature (or names a
+  // step that no longer exists), same as the Content list page.
+  useEffect(() => {
+    if (!entry) return;
+    const normalized = normalizeEntryStatus(entry.status, workflowSteps);
+    if (normalized !== entry.status) {
+      setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, status: normalized } : e)));
+    }
+  }, [entry, workflowSteps, id]);
+
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
 
   if (!entry) {
@@ -84,7 +94,7 @@ export default function ContentDetail() {
   }
 
   function handleStatusChange(value) {
-    if (value === publishStepId && value !== entry.status) {
+    if (value === publishStepId && value !== displayStatus) {
       setPublishMode("now");
       setScheduledAt(defaultScheduleValue());
       setPendingPublish(true);
@@ -104,7 +114,8 @@ export default function ContentDetail() {
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
   const author = users.find((u) => u.id === entry.updatedBy);
-  const currentStep = workflowSteps.find((s) => s.id === entry.status);
+  const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
+  const currentStep = workflowSteps.find((s) => s.id === displayStatus);
   const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
   const entryIsAllChannels = isAllChannels(entry.channels);
 
@@ -143,7 +154,7 @@ export default function ContentDetail() {
         <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
           <DetailField label="Status">
             <select
-              value={entry.status}
+              value={displayStatus}
               onChange={(e) => handleStatusChange(e.target.value)}
               className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >

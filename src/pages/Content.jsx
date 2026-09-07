@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -31,6 +31,17 @@ export default function Content() {
   const usersById = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const typesById = useMemo(() => Object.fromEntries(contentTypes.map((t) => [t.id, t])), [contentTypes]);
 
+  // Self-heal entries whose status predates the Workflow feature (or names a
+  // step that no longer exists) so the table/sidebar never show raw garbage.
+  const displayEntries = useMemo(
+    () => entries.map((e) => ({ ...e, status: normalizeEntryStatus(e.status, workflowSteps) })),
+    [entries, workflowSteps]
+  );
+  useEffect(() => {
+    const needsFix = entries.some((e, i) => e.status !== displayEntries[i].status);
+    if (needsFix) setEntries(displayEntries);
+  }, [entries, displayEntries]);
+
   const [filter, setFilter] = useState({ view: "all", status: null, typeId: null });
   const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null, channel: null });
   const [search, setSearch] = useState("");
@@ -43,7 +54,7 @@ export default function Content() {
     id: step.id,
     name: step.name,
     color: step.color,
-    count: entries.filter((e) => e.status === step.id).length,
+    count: displayEntries.filter((e) => e.status === step.id).length,
   }));
 
   const filterValues = { status: filter.status, contentTypeId: filter.typeId, ...extraFilters };
@@ -67,7 +78,7 @@ export default function Content() {
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
 
-  const filtered = entries.filter((e) => {
+  const filtered = displayEntries.filter((e) => {
     if (filter.view === "scheduled" && !e.scheduledPublishAt) return false;
     if (filter.status && e.status !== filter.status) return false;
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;

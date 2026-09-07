@@ -48,6 +48,17 @@ export function normalizeWorkflowSteps(steps) {
   );
 }
 
+// Entries store the workflow step's id. Older data (from before the Workflow
+// feature existed, or from before steps were keyed by id) may still hold a
+// step's display name, or a stale value that matches no current step at all —
+// fall back to the first step in that case rather than showing garbage.
+export function normalizeEntryStatus(status, workflowSteps) {
+  if (workflowSteps.some((s) => s.id === status)) return status;
+  const byName = workflowSteps.find((s) => s.name === status);
+  if (byName) return byName.id;
+  return workflowSteps[0]?.id ?? status;
+}
+
 const CHANNELS = [
   { id: "ch1", name: "MyPrague app", icon: "smartphone", color: WORKFLOW_COLORS[6] },
   { id: "ch2", name: "PCT website", icon: "globe", color: WORKFLOW_COLORS[7] },
