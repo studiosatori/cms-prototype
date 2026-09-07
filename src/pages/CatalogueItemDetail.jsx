@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
 import { seedCatalogueItems, seedCatalogueCategories, getUser, STATUS_LIST, LOCALE_LIST } from "../lib/seed";
@@ -20,6 +20,10 @@ export default function CatalogueItemDetail() {
 
   const item = items.find((i) => i.id === id);
   const [name, setName] = useState(item?.name ?? "");
+  const [saveStatus, setSaveStatus] = useState("saved");
+  const saveTimeoutRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
   if (!item) {
     return (
@@ -37,11 +41,14 @@ export default function CatalogueItemDetail() {
 
   function update(patch) {
     setItems(items.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+    setSaveStatus("saving");
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader crumbs={["Catalogue", category?.name, name || item.name]} onBack={() => navigate(-1)} />
+      <PageHeader crumbs={["Catalogue", category?.name, name || item.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
       <div className="flex gap-6">
         <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">

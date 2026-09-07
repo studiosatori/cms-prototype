@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Trash2, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
@@ -15,6 +15,10 @@ export default function ContentTypeDetail() {
 
   const type = contentTypes.find((t) => t.id === id);
   const [name, setName] = useState(type?.name ?? "");
+  const [saveStatus, setSaveStatus] = useState("saved");
+  const saveTimeoutRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
   if (!type) {
     return (
@@ -29,6 +33,9 @@ export default function ContentTypeDetail() {
 
   function update(patch) {
     setContentTypes(contentTypes.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    setSaveStatus("saving");
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
   function addField() {
@@ -47,7 +54,7 @@ export default function ContentTypeDetail() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader crumbs={["Content types", name || type.name]} onBack={() => navigate(-1)} />
+      <PageHeader crumbs={["Content types", name || type.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
       <div className="flex gap-6">
         <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
@@ -23,6 +23,10 @@ export default function ContentDetail() {
 
   const entry = entries.find((e) => e.id === id);
   const [title, setTitle] = useState(entry?.title ?? "");
+  const [saveStatus, setSaveStatus] = useState("saved");
+  const saveTimeoutRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
   if (!entry) {
     return (
@@ -37,6 +41,9 @@ export default function ContentDetail() {
 
   function update(patch) {
     setEntries(entries.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+    setSaveStatus("saving");
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
   function toggleChannel(channelId) {
@@ -50,7 +57,7 @@ export default function ContentDetail() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader crumbs={["Content", title || entry.title]} onBack={() => navigate(-1)} />
+      <PageHeader crumbs={["Content", title || entry.title]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
       <div className="flex gap-6">
         <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">

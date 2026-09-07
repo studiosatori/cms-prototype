@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
+import SaveIndicator from "./SaveIndicator";
 
-export default function PageHeader({ crumbs, onBack, actions }) {
+export default function PageHeader({ crumbs, onBack, actions, saveStatus }) {
   const title = crumbs[crumbs.length - 1];
   return (
     <div>
@@ -20,6 +21,7 @@ export default function PageHeader({ crumbs, onBack, actions }) {
             </button>
           )}
           <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          <SaveIndicator status={saveStatus} />
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
