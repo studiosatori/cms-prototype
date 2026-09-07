@@ -285,6 +285,10 @@ export function countTerms(terms) {
   return terms.reduce((sum, t) => sum + 1 + countTerms(t.children), 0);
 }
 
+export function flattenTerms(terms, depth = 0) {
+  return terms.flatMap((t) => [{ id: t.id, name: t.name, depth }, ...flattenTerms(t.children, depth + 1)]);
+}
+
 export function updateTermInTree(terms, id, patch) {
   return terms.map((t) =>
     t.id === id ? { ...t, ...patch } : { ...t, children: updateTermInTree(t.children, id, patch) }

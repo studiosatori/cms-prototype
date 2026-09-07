@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import {
-  seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
-  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
+  seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
+  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds, flattenTerms,
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -36,6 +36,8 @@ export default function ContentDetail() {
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
   const [rawChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
   const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
+  const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
+  const [media] = useLocalStorage("cms.media", seedMedia);
   const users = seedUsers();
 
   const entry = entries.find((e) => e.id === id);
@@ -78,6 +80,16 @@ export default function ContentDetail() {
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
   }
 
+  function setFieldValue(fieldName, value) {
+    update({ fieldValues: { ...(entry.fieldValues ?? {}), [fieldName]: value } });
+  }
+
+  function toggleTaxonomyTerm(fieldName, termId) {
+    const current = entry.fieldValues?.[fieldName] ?? [];
+    const next = current.includes(termId) ? current.filter((t) => t !== termId) : [...current, termId];
+    setFieldValue(fieldName, next);
+  }
+
   function selectChannel(channelId) {
     update({ channels: channelId });
   }
@@ -106,6 +118,7 @@ export default function ContentDetail() {
   }
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
+  const extraFields = (type?.fields ?? []).filter((f) => !["title", "slug", "body"].includes(f.name));
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);
@@ -153,6 +166,112 @@ export default function ContentDetail() {
               className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
+
+          {extraFields.map((f) => {
+            const value = entry.fieldValues?.[f.name];
+
+            if (f.type === "Taxonomy") {
+              const taxonomy = taxonomies.find((t) => t.id === f.taxonomyId);
+              const selected = value ?? [];
+              return (
+                <DetailField key={f.name} label={f.name}>
+                  {taxonomy ? (
+                    <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-200 bg-white p-2">
+                      {flattenTerms(taxonomy.terms).map((t) => (
+                        <label
+                          key={t.id}
+                          className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50"
+                          style={{ paddingLeft: 6 + t.depth * 16 }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(t.id)}
+                            onChange={() => toggleTaxonomyTerm(f.name, t.id)}
+                            className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
+                          />
+                          {t.name}
+                        </label>
+                      ))}
+                      {taxonomy.terms.length === 0 && (
+                        <p className="px-1.5 py-1 text-sm text-gray-400">This taxonomy has no terms yet.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">No taxonomy selected for this field.</p>
+                  )}
+                </DetailField>
+              );
+            }
+
+            if (f.type === "Rich text") {
+              return (
+                <DetailField key={f.name} label={f.name}>
+                  <textarea
+                    rows={4}
+                    defaultValue={value ?? ""}
+                    onBlur={(e) => setFieldValue(f.name, e.target.value)}
+                    className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                  />
+                </DetailField>
+              );
+            }
+
+            if (f.type === "Number") {
+              return (
+                <DetailField key={f.name} label={f.name}>
+                  <input
+                    type="number"
+                    value={value ?? ""}
+                    onChange={(e) => setFieldValue(f.name, e.target.value)}
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                  />
+                </DetailField>
+              );
+            }
+
+            if (f.type === "Boolean") {
+              return (
+                <DetailField key={f.name} label={f.name}>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={value ?? false}
+                      onChange={(e) => setFieldValue(f.name, e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 accent-violet-600"
+                    />
+                    {value ? "Yes" : "No"}
+                  </label>
+                </DetailField>
+              );
+            }
+
+            if (f.type === "Media") {
+              return (
+                <DetailField key={f.name} label={f.name}>
+                  <select
+                    value={value ?? ""}
+                    onChange={(e) => setFieldValue(f.name, e.target.value)}
+                    className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+                  >
+                    <option value="">None</option>
+                    {media.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </select>
+                </DetailField>
+              );
+            }
+
+            return (
+              <DetailField key={f.name} label={f.name}>
+                <input
+                  defaultValue={value ?? ""}
+                  onBlur={(e) => setFieldValue(f.name, e.target.value)}
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                />
+              </DetailField>
+            );
+          })}
         </div>
 
         <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
