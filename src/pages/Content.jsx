@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Gem, Newspaper } from "lucide-react";
+import { Plus, FileText, Gem, Newspaper, ChevronDown } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
@@ -269,19 +269,19 @@ export default function Content() {
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">All content</h1>
           <div className="flex items-center gap-2">
-            <div className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-gray-300">
-              {LOCALE_LIST.map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setActiveLocale(l)}
-                  title={l === defaultLocale ? `${LOCALE_NAMES[l] ?? l} (default)` : LOCALE_NAMES[l] ?? l}
-                  className={`px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors ${
-                    activeLocale === l ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {LOCALE_LABELS[l] ?? l.toUpperCase()}
-                </button>
-              ))}
+            <div className="relative">
+              <select
+                value={activeLocale}
+                onChange={(e) => setActiveLocale(e.target.value)}
+                className="appearance-none rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
+              >
+                {LOCALE_LIST.map((l) => (
+                  <option key={l} value={l}>
+                    {(LOCALE_NAMES[l] ?? l.toUpperCase()) + (l === defaultLocale ? " (default)" : "")}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={13} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
             <button
               onClick={() => setAdding((v) => !v)}
