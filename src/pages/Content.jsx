@@ -62,7 +62,12 @@ export default function Content() {
     return map;
   }, [displayEntries]);
 
-  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null, channelId: null, locale: null });
+  // Language is a persistent view scope (like switching workspaces), not one
+  // more exclusive quick-filter — it stays applied across every other filter
+  // and starts on the workspace's default language.
+  const [activeLocale, setActiveLocale] = useState(defaultLocale);
+
+  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null, channelId: null });
   const [extraFilters, setExtraFilters] = useState({ updatedBy: null });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
@@ -70,25 +75,26 @@ export default function Content() {
   const [draftTitle, setDraftTitle] = useState("");
   const [draftType, setDraftType] = useState(contentTypes[0]?.id);
 
+  const scopedEntries = useMemo(() => displayEntries.filter((e) => e.locale === activeLocale), [displayEntries, activeLocale]);
+
   const statuses = workflowSteps.map((step) => ({
     id: step.id,
     name: step.name,
     color: step.color,
-    count: displayEntries.filter((e) => e.status === step.id).length,
+    count: scopedEntries.filter((e) => e.status === step.id).length,
   }));
 
-  const filterValues = { status: filter.status, contentTypeId: filter.typeId, channel: filter.channelId, locale: filter.locale, ...extraFilters };
+  const filterValues = { status: filter.status, contentTypeId: filter.typeId, channel: filter.channelId, ...extraFilters };
 
   function handleFilterChange(key, value) {
-    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null, channelId: null, locale: null });
-    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value, channelId: null, locale: null });
-    if (key === "channel") return setFilter({ view: value ? "channel" : "all", status: null, typeId: null, channelId: value, locale: null });
-    if (key === "locale") return setFilter({ view: value ? "locale" : "all", status: null, typeId: null, channelId: null, locale: value });
+    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null, channelId: null });
+    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value, channelId: null });
+    if (key === "channel") return setFilter({ view: value ? "channel" : "all", status: null, typeId: null, channelId: value });
     setExtraFilters((v) => ({ ...v, [key]: value }));
   }
 
   function clearFilters() {
-    setFilter({ view: "all", status: null, typeId: null, channelId: null, locale: null });
+    setFilter({ view: "all", status: null, typeId: null, channelId: null });
     setExtraFilters({ updatedBy: null });
   }
 
@@ -96,15 +102,13 @@ export default function Content() {
     { key: "status", label: "Status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
     { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
-    { key: "locale", label: "Language", options: LOCALE_LIST.map((l) => ({ value: l, label: LOCALE_NAMES[l] ?? l.toUpperCase() })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
 
-  const filtered = displayEntries.filter((e) => {
+  const filtered = scopedEntries.filter((e) => {
     if (filter.view === "scheduled" && !e.scheduledPublishAt) return false;
     if (filter.status && e.status !== filter.status) return false;
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;
-    if (filter.locale && e.locale !== filter.locale) return false;
     if (extraFilters.updatedBy && e.updatedBy !== extraFilters.updatedBy) return false;
     if (filter.channelId && !resolvePublishedChannelIds(e.channels, channels).includes(filter.channelId)) return false;
     if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false;
@@ -120,7 +124,7 @@ export default function Content() {
       title: draftTitle.trim(),
       contentTypeId: draftType,
       status: workflowSteps[0]?.id,
-      locale: defaultLocale,
+      locale: activeLocale,
       channels: ALL_CHANNELS,
       updatedAt: "2026-08-12T18:00:00",
       updatedBy: usersById && users[0].id,
@@ -255,13 +259,7 @@ export default function Content() {
           id: c.id,
           name: c.name,
           color: c.color,
-          count: displayEntries.filter((e) => resolvePublishedChannelIds(e.channels, channels).includes(c.id)).length,
-        }))}
-        localeGroupLabel="Language"
-        localeItems={LOCALE_LIST.map((l) => ({
-          id: l,
-          name: LOCALE_NAMES[l] ?? l.toUpperCase(),
-          count: displayEntries.filter((e) => e.locale === l).length,
+          count: scopedEntries.filter((e) => resolvePublishedChannelIds(e.channels, channels).includes(c.id)).length,
         }))}
         filter={filter}
         onFilter={(f) => { setFilter(f); setSearch(""); }}
@@ -271,6 +269,20 @@ export default function Content() {
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-gray-900">All content</h1>
           <div className="flex items-center gap-2">
+            <div className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-gray-300">
+              {LOCALE_LIST.map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setActiveLocale(l)}
+                  title={l === defaultLocale ? `${LOCALE_NAMES[l] ?? l} (default)` : LOCALE_NAMES[l] ?? l}
+                  className={`px-2.5 py-1.5 text-xs font-semibold uppercase transition-colors ${
+                    activeLocale === l ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"
+                  }`}
+                >
+                  {LOCALE_LABELS[l] ?? l.toUpperCase()}
+                </button>
+              ))}
+            </div>
             <button
               onClick={() => setAdding((v) => !v)}
               className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
@@ -332,7 +344,7 @@ export default function Content() {
           />
           <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-xs text-gray-400">
             <span>{selected.size} selected</span>
-            <span>Showing {filtered.length} of {entries.length}</span>
+            <span>Showing {filtered.length} of {scopedEntries.length}</span>
           </div>
         </div>
       </div>

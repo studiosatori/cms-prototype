@@ -1,4 +1,4 @@
-import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper, Globe } from "lucide-react";
+import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper } from "lucide-react";
 
 const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
@@ -29,13 +29,11 @@ export default function Sidebar({
   typeItems,
   channelGroupLabel = "Channel",
   channelItems,
-  localeGroupLabel = "Language",
-  localeItems,
   filter,
   onFilter,
 }) {
-  const isAll = !filter.status && !filter.typeId && !filter.channelId && !filter.locale && filter.view === "all";
-  const reset = { status: null, typeId: null, channelId: null, locale: null };
+  const isAll = !filter.status && !filter.typeId && !filter.channelId && filter.view === "all";
+  const reset = { status: null, typeId: null, channelId: null };
 
   return (
     <aside className="w-60 shrink-0 space-y-4 border-r border-gray-200 bg-white p-3">
@@ -91,24 +89,6 @@ export default function Sidebar({
                 count={c.count}
                 active={filter.channelId === c.id}
                 onClick={() => onFilter({ view: "channel", ...reset, channelId: c.id })}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {localeItems && (
-        <div>
-          <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{localeGroupLabel}</p>
-          <div className="space-y-0.5">
-            {localeItems.map((l) => (
-              <Item
-                key={l.id}
-                icon={Globe}
-                label={l.name}
-                count={l.count}
-                active={filter.locale === l.id}
-                onClick={() => onFilter({ view: "locale", ...reset, locale: l.id })}
               />
             ))}
           </div>
