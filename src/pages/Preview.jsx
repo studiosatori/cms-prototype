@@ -46,7 +46,7 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
 function AppMock({ entry, channel, isPublished, typeName }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
-      <div className="flex h-[640px] w-[370px] flex-col overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
+      <div className="flex h-[852px] w-[393px] flex-col overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
         <div className="flex shrink-0 items-center justify-between bg-gray-900 px-5 py-1.5 text-[10px] text-white">
           <span>9:41</span>
           <div className="flex items-center gap-1">
