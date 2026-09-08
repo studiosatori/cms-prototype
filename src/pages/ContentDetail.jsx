@@ -269,11 +269,22 @@ export default function ContentDetail() {
         onBack={() => navigate(-1)}
         saveStatus={saveStatus}
         actions={
-          <PreviewButton
-            entryId={entry.id}
-            channels={channels}
-            defaultChannelId={channels.find((c) => c.icon === "globe")?.id ?? channels[0]?.id}
-          />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLangDialogOpen(true)}
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
+            >
+              <Languages size={14} /> Languages
+              <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
+                {siblings.length + 1}/{LOCALE_LIST.length}
+              </span>
+            </button>
+            <PreviewButton
+              entryId={entry.id}
+              channels={channels}
+              defaultChannelId={channels.find((c) => c.icon === "globe")?.id ?? channels[0]?.id}
+            />
+          </div>
         }
       />
 
@@ -584,15 +595,6 @@ export default function ContentDetail() {
                 <span className="ml-1.5 text-xs text-gray-400">Default language</span>
               )}
             </DetailField>
-            <button
-              onClick={() => setLangDialogOpen(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <Languages size={14} /> Languages
-              <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
-                {siblings.length + 1}/{LOCALE_LIST.length}
-              </span>
-            </button>
             <DetailField label="Last updated by">
               <span className="inline-flex items-center gap-2">
                 <Avatar user={author} size={20} />
