@@ -93,8 +93,21 @@ export default function Content() {
   function addEntry() {
     if (!draftTitle.trim()) return;
     const id = `e${Date.now()}`;
+    const newEntry = {
+      id,
+      title: draftTitle.trim(),
+      contentTypeId: draftType,
+      status: workflowSteps[0]?.id,
+      locale: "en",
+      channels: ALL_CHANNELS,
+      updatedAt: "2026-08-12T18:00:00",
+      updatedBy: usersById && users[0].id,
+    };
     setEntries([
-      { id, title: draftTitle.trim(), contentTypeId: draftType, status: workflowSteps[0]?.id, locale: "en", channels: ALL_CHANNELS, updatedAt: "2026-08-12T18:00:00", updatedBy: usersById && users[0].id },
+      {
+        ...newEntry,
+        history: [{ id: `h${Date.now()}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: "Entry created", snapshot: newEntry }],
+      },
       ...entries,
     ]);
     setDraftTitle("");
