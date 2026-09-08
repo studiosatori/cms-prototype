@@ -124,6 +124,7 @@ export default function Content() {
     {
       key: "type",
       header: "Content Type",
+      sortValue: (r) => typesById[r.contentTypeId]?.name ?? "",
       render: (r) => {
         const t = typesById[r.contentTypeId];
         const Icon = TYPE_ICONS[t?.icon] || FileText;
@@ -144,6 +145,7 @@ export default function Content() {
     {
       key: "updatedBy",
       header: "Last updated by",
+      sortValue: (r) => usersById[r.updatedBy]?.name ?? "",
       render: (r) => {
         const u = usersById[r.updatedBy];
         return (
