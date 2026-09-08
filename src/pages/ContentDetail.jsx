@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
@@ -103,6 +103,7 @@ export default function ContentDetail() {
   const [scheduledAt, setScheduledAt] = useState("");
   const [historyMode, setHistoryMode] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState(null); // null = current live version
+  const [commentDraft, setCommentDraft] = useState("");
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
@@ -185,6 +186,18 @@ export default function ContentDetail() {
     setPendingPublish(false);
   }
 
+  function addComment() {
+    const text = commentDraft.trim();
+    if (!text) return;
+    const comment = { id: `cm${Date.now()}`, userId: users[0]?.id, text, timestamp: new Date().toISOString() };
+    update({ comments: [...(entry.comments ?? []), comment] });
+    setCommentDraft("");
+  }
+
+  function deleteComment(commentId) {
+    update({ comments: (entry.comments ?? []).filter((c) => c.id !== commentId) });
+  }
+
   function openHistory() {
     setHistoryMode(true);
     setSelectedVersionId(null);
@@ -204,6 +217,7 @@ export default function ContentDetail() {
   const entryIsAllChannels = isAllChannels(entry.channels);
 
   const history = entry.history ?? [];
+  const comments = entry.comments ?? [];
   const selectedVersion = selectedVersionId ? history.find((h) => h.id === selectedVersionId) : null;
   const viewEntry = selectedVersion ? selectedVersion.snapshot : entry;
   const viewStep = workflowSteps.find((s) => s.id === normalizeEntryStatus(viewEntry.status, workflowSteps));
@@ -553,6 +567,71 @@ export default function ContentDetail() {
                 </span>
               )}
             </button>
+
+            <div className="border-t border-gray-100 pt-5">
+              <p className="mb-3 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
+                <MessageCircle size={13} /> Comments
+                {comments.length > 0 && (
+                  <span className="rounded-full bg-gray-100 px-1.5 text-[11px] font-normal normal-case text-gray-500">
+                    {comments.length}
+                  </span>
+                )}
+              </p>
+
+              <div className="space-y-3">
+                {[...comments].reverse().map((c) => {
+                  const commenter = users.find((u) => u.id === c.userId);
+                  return (
+                    <div key={c.id} className="group flex items-start gap-2">
+                      <Avatar user={commenter} size={22} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="truncate text-sm font-medium text-gray-900">{commenter?.name}</span>
+                          <span className="shrink-0 text-xs text-gray-400">{formatScheduled(c.timestamp)}</span>
+                        </div>
+                        <p className="whitespace-pre-wrap text-sm text-gray-700">{c.text}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="shrink-0 text-gray-300 opacity-0 hover:text-gray-600 group-hover:opacity-100"
+                        title="Delete comment"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {comments.length === 0 && <p className="text-sm text-gray-400">No comments yet.</p>}
+              </div>
+
+              <div className="mt-3 flex items-start gap-2">
+                <Avatar user={users[0]} size={22} />
+                <div className="min-w-0 flex-1">
+                  <textarea
+                    rows={2}
+                    value={commentDraft}
+                    onChange={(e) => setCommentDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        addComment();
+                      }
+                    }}
+                    placeholder="Leave a comment…"
+                    className="w-full resize-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+                  />
+                  <div className="mt-1.5 flex justify-end">
+                    <button
+                      onClick={addComment}
+                      disabled={!commentDraft.trim()}
+                      className="rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Comment
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
