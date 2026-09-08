@@ -134,6 +134,12 @@ function pickEntryChannels(i) {
   return ALL_CHANNELS;
 }
 
+const LOCALE_PATTERNS = [["en"], ["en", "cs"], ["en", "cs", "de"], ["en", "de"], ["cs"]];
+
+function pickEntryLocales(i) {
+  return LOCALE_PATTERNS[i % LOCALE_PATTERNS.length];
+}
+
 export function seedEntries() {
   return ENTRY_NAMES.map((name, i) => {
     const typeIdx = name.startsWith("SEO") ? 2 : name.startsWith("Hero") ? 3
@@ -145,6 +151,7 @@ export function seedEntries() {
       contentTypeId: CONTENT_TYPES[typeIdx % CONTENT_TYPES.length].id,
       status: pickEntryStatus(i),
       locale: pick(LOCALES, i),
+      locales: pickEntryLocales(i),
       channels: pickEntryChannels(i),
       updatedAt: daysAgo(i % 10),
       updatedBy: pick(USERS, i).id,
@@ -328,6 +335,15 @@ export function getUser(id) {
 
 export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
+export const LOCALE_LABELS = { en: "EN", cs: "CZ", de: "DE" };
+
+export function normalizeEntryLocales(locales, fallbackLocale) {
+  if (Array.isArray(locales) && locales.length > 0) {
+    const valid = locales.filter((l) => LOCALE_LIST.includes(l));
+    if (valid.length > 0) return valid;
+  }
+  return [LOCALE_LIST.includes(fallbackLocale) ? fallbackLocale : LOCALE_LIST[0]];
+}
 export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean", "Taxonomy"];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;

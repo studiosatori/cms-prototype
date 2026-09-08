@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, normalizeEntryLocales, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -34,11 +34,18 @@ export default function Content() {
   // Self-heal entries whose status predates the Workflow feature (or names a
   // step that no longer exists) so the table/sidebar never show raw garbage.
   const displayEntries = useMemo(
-    () => entries.map((e) => ({ ...e, status: normalizeEntryStatus(e.status, workflowSteps) })),
+    () =>
+      entries.map((e) => ({
+        ...e,
+        status: normalizeEntryStatus(e.status, workflowSteps),
+        locales: normalizeEntryLocales(e.locales, e.locale),
+      })),
     [entries, workflowSteps]
   );
   useEffect(() => {
-    const needsFix = entries.some((e, i) => e.status !== displayEntries[i].status);
+    const needsFix = entries.some(
+      (e, i) => e.status !== displayEntries[i].status || (e.locales ?? []).join(",") !== displayEntries[i].locales.join(",")
+    );
     if (needsFix) setEntries(displayEntries);
   }, [entries, displayEntries]);
 
@@ -187,6 +194,28 @@ export default function Content() {
             })}
           </div>
         ),
+    },
+    {
+      key: "localization",
+      header: "Localization",
+      sortValue: (r) => r.locales.length,
+      render: (r) => (
+        <div className="flex items-center gap-1">
+          {LOCALE_LIST.map((l) => {
+            const active = r.locales.includes(l);
+            return (
+              <span
+                key={l}
+                className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
+                  active ? "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200" : "text-gray-300"
+                }`}
+              >
+                {LOCALE_LABELS[l] ?? l.toUpperCase()}
+              </span>
+            );
+          })}
+        </div>
+      ),
     },
   ];
 
