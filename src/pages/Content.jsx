@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, normalizeEntryLocales, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
+import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
 import StatusPill from "../components/StatusPill";
@@ -21,6 +21,7 @@ function timeAgo(iso) {
 export default function Content() {
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
@@ -38,19 +39,31 @@ export default function Content() {
       entries.map((e) => ({
         ...e,
         status: normalizeEntryStatus(e.status, workflowSteps),
-        locales: normalizeEntryLocales(e.locales, e.locale),
+        groupId: normalizeEntryGroupId(e),
       })),
     [entries, workflowSteps]
   );
   useEffect(() => {
     const needsFix = entries.some(
-      (e, i) => e.status !== displayEntries[i].status || (e.locales ?? []).join(",") !== displayEntries[i].locales.join(",")
+      (e, i) => e.status !== displayEntries[i].status || e.groupId !== displayEntries[i].groupId
     );
     if (needsFix) setEntries(displayEntries);
   }, [entries, displayEntries]);
 
-  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null, channelId: null });
-  const [extraFilters, setExtraFilters] = useState({ locale: null, updatedBy: null });
+  // Which locales exist among each group of linked language versions, so the
+  // Localization column can show presence/absence regardless of the current
+  // filter/sort of the table.
+  const localesByGroup = useMemo(() => {
+    const map = {};
+    displayEntries.forEach((e) => {
+      if (!map[e.groupId]) map[e.groupId] = new Set();
+      map[e.groupId].add(e.locale);
+    });
+    return map;
+  }, [displayEntries]);
+
+  const [filter, setFilter] = useState({ view: "all", status: null, typeId: null, channelId: null, locale: null });
+  const [extraFilters, setExtraFilters] = useState({ updatedBy: null });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [adding, setAdding] = useState(false);
@@ -64,25 +77,26 @@ export default function Content() {
     count: displayEntries.filter((e) => e.status === step.id).length,
   }));
 
-  const filterValues = { status: filter.status, contentTypeId: filter.typeId, channel: filter.channelId, ...extraFilters };
+  const filterValues = { status: filter.status, contentTypeId: filter.typeId, channel: filter.channelId, locale: filter.locale, ...extraFilters };
 
   function handleFilterChange(key, value) {
-    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null, channelId: null });
-    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value, channelId: null });
-    if (key === "channel") return setFilter({ view: value ? "channel" : "all", status: null, typeId: null, channelId: value });
+    if (key === "status") return setFilter({ view: value ? "status" : "all", status: value, typeId: null, channelId: null, locale: null });
+    if (key === "contentTypeId") return setFilter({ view: value ? "type" : "all", status: null, typeId: value, channelId: null, locale: null });
+    if (key === "channel") return setFilter({ view: value ? "channel" : "all", status: null, typeId: null, channelId: value, locale: null });
+    if (key === "locale") return setFilter({ view: value ? "locale" : "all", status: null, typeId: null, channelId: null, locale: value });
     setExtraFilters((v) => ({ ...v, [key]: value }));
   }
 
   function clearFilters() {
-    setFilter({ view: "all", status: null, typeId: null, channelId: null });
-    setExtraFilters({ locale: null, updatedBy: null });
+    setFilter({ view: "all", status: null, typeId: null, channelId: null, locale: null });
+    setExtraFilters({ updatedBy: null });
   }
 
   const filterFields = [
     { key: "status", label: "Status", options: workflowSteps.map((s) => ({ value: s.id, label: s.name })) },
     { key: "contentTypeId", label: "Content type", options: contentTypes.map((t) => ({ value: t.id, label: t.name })) },
     { key: "channel", label: "Channel", options: channels.map((c) => ({ value: c.id, label: c.name })) },
-    { key: "locale", label: "Locale", options: LOCALE_LIST.map((l) => ({ value: l, label: l.toUpperCase() })) },
+    { key: "locale", label: "Language", options: LOCALE_LIST.map((l) => ({ value: l, label: LOCALE_NAMES[l] ?? l.toUpperCase() })) },
     { key: "updatedBy", label: "Updated by", options: users.map((u) => ({ value: u.id, label: u.name })) },
   ];
 
@@ -90,7 +104,7 @@ export default function Content() {
     if (filter.view === "scheduled" && !e.scheduledPublishAt) return false;
     if (filter.status && e.status !== filter.status) return false;
     if (filter.typeId && e.contentTypeId !== filter.typeId) return false;
-    if (extraFilters.locale && e.locale !== extraFilters.locale) return false;
+    if (filter.locale && e.locale !== filter.locale) return false;
     if (extraFilters.updatedBy && e.updatedBy !== extraFilters.updatedBy) return false;
     if (filter.channelId && !resolvePublishedChannelIds(e.channels, channels).includes(filter.channelId)) return false;
     if (search && !e.title.toLowerCase().includes(search.toLowerCase())) return false;
@@ -102,10 +116,11 @@ export default function Content() {
     const id = `e${Date.now()}`;
     const newEntry = {
       id,
+      groupId: id,
       title: draftTitle.trim(),
       contentTypeId: draftType,
       status: workflowSteps[0]?.id,
-      locale: "en",
+      locale: defaultLocale,
       channels: ALL_CHANNELS,
       updatedAt: "2026-08-12T18:00:00",
       updatedBy: usersById && users[0].id,
@@ -198,24 +213,32 @@ export default function Content() {
     {
       key: "localization",
       header: "Localization",
-      sortValue: (r) => r.locales.length,
-      render: (r) => (
-        <div className="flex items-center gap-1">
-          {LOCALE_LIST.map((l) => {
-            const active = r.locales.includes(l);
-            return (
-              <span
-                key={l}
-                className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
-                  active ? "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200" : "text-gray-300"
-                }`}
-              >
-                {LOCALE_LABELS[l] ?? l.toUpperCase()}
-              </span>
-            );
-          })}
-        </div>
-      ),
+      sortValue: (r) => localesByGroup[r.groupId]?.size ?? 1,
+      render: (r) => {
+        const present = localesByGroup[r.groupId] ?? new Set([r.locale]);
+        return (
+          <div className="flex items-center gap-1">
+            {LOCALE_LIST.map((l) => {
+              const isSelf = l === r.locale;
+              const exists = present.has(l);
+              return (
+                <span
+                  key={l}
+                  className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
+                    isSelf
+                      ? "bg-violet-600 text-white"
+                      : exists
+                        ? "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200"
+                        : "text-gray-300"
+                  }`}
+                >
+                  {LOCALE_LABELS[l] ?? l.toUpperCase()}
+                </span>
+              );
+            })}
+          </div>
+        );
+      },
     },
   ];
 
@@ -233,6 +256,12 @@ export default function Content() {
           name: c.name,
           color: c.color,
           count: displayEntries.filter((e) => resolvePublishedChannelIds(e.channels, channels).includes(c.id)).length,
+        }))}
+        localeGroupLabel="Language"
+        localeItems={LOCALE_LIST.map((l) => ({
+          id: l,
+          name: LOCALE_NAMES[l] ?? l.toUpperCase(),
+          count: displayEntries.filter((e) => e.locale === l).length,
         }))}
         filter={filter}
         onFilter={(f) => { setFilter(f); setSearch(""); }}

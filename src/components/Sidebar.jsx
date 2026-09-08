@@ -1,4 +1,4 @@
-import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper } from "lucide-react";
+import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper, Globe } from "lucide-react";
 
 const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
@@ -29,17 +29,20 @@ export default function Sidebar({
   typeItems,
   channelGroupLabel = "Channel",
   channelItems,
+  localeGroupLabel = "Language",
+  localeItems,
   filter,
   onFilter,
 }) {
-  const isAll = !filter.status && !filter.typeId && !filter.channelId && filter.view === "all";
+  const isAll = !filter.status && !filter.typeId && !filter.channelId && !filter.locale && filter.view === "all";
+  const reset = { status: null, typeId: null, channelId: null, locale: null };
 
   return (
     <aside className="w-60 shrink-0 space-y-4 border-r border-gray-200 bg-white p-3">
       <div className="space-y-0.5">
-        <Item icon={List} label={allLabel} active={isAll} onClick={() => onFilter({ view: "all", status: null, typeId: null, channelId: null })} />
-        <Item icon={Clock} label="Recent" active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", status: null, typeId: null, channelId: null })} />
-        <Item icon={CalendarClock} label="Scheduled" active={filter.view === "scheduled"} onClick={() => onFilter({ view: "scheduled", status: null, typeId: null, channelId: null })} />
+        <Item icon={List} label={allLabel} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
+        <Item icon={Clock} label="Recent" active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", ...reset })} />
+        <Item icon={CalendarClock} label="Scheduled" active={filter.view === "scheduled"} onClick={() => onFilter({ view: "scheduled", ...reset })} />
       </div>
 
       <div>
@@ -53,7 +56,7 @@ export default function Sidebar({
               label={s.name}
               count={s.count}
               active={filter.status === (s.id ?? s.name)}
-              onClick={() => onFilter({ view: "status", status: s.id ?? s.name, typeId: null, channelId: null })}
+              onClick={() => onFilter({ view: "status", ...reset, status: s.id ?? s.name })}
             />
           ))}
         </div>
@@ -69,7 +72,7 @@ export default function Sidebar({
               label={t.name}
               count={t.count}
               active={filter.typeId === t.id}
-              onClick={() => onFilter({ view: "type", status: null, typeId: t.id, channelId: null })}
+              onClick={() => onFilter({ view: "type", ...reset, typeId: t.id })}
             />
           ))}
         </div>
@@ -87,7 +90,25 @@ export default function Sidebar({
                 label={c.name}
                 count={c.count}
                 active={filter.channelId === c.id}
-                onClick={() => onFilter({ view: "channel", status: null, typeId: null, channelId: c.id })}
+                onClick={() => onFilter({ view: "channel", ...reset, channelId: c.id })}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {localeItems && (
+        <div>
+          <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{localeGroupLabel}</p>
+          <div className="space-y-0.5">
+            {localeItems.map((l) => (
+              <Item
+                key={l.id}
+                icon={Globe}
+                label={l.name}
+                count={l.count}
+                active={filter.locale === l.id}
+                onClick={() => onFilter({ view: "locale", ...reset, locale: l.id })}
               />
             ))}
           </div>

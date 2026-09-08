@@ -134,29 +134,46 @@ function pickEntryChannels(i) {
   return ALL_CHANNELS;
 }
 
-const LOCALE_PATTERNS = [["en"], ["en", "cs"], ["en", "cs", "de"], ["en", "de"], ["cs"]];
-
-function pickEntryLocales(i) {
-  return LOCALE_PATTERNS[i % LOCALE_PATTERNS.length];
-}
+// A content item's language versions are independent entries linked by
+// groupId — each has its own status/workflow/history, not a shared field.
+const SIBLING_LOCALE = { en: "cs", cs: "de", de: "en" };
 
 export function seedEntries() {
-  return ENTRY_NAMES.map((name, i) => {
+  const base = ENTRY_NAMES.map((name, i) => {
     const typeIdx = name.startsWith("SEO") ? 2 : name.startsWith("Hero") ? 3
       : ["How we source", "Behind the scenes", "Sustainability", "Customer stories"].some(p => name.startsWith(p)) ? 4
       : i % 5;
+    const id = `e${i + 1}`;
     return {
-      id: `e${i + 1}`,
+      id,
+      groupId: id,
       title: name,
       contentTypeId: CONTENT_TYPES[typeIdx % CONTENT_TYPES.length].id,
       status: pickEntryStatus(i),
       locale: pick(LOCALES, i),
-      locales: pickEntryLocales(i),
       channels: pickEntryChannels(i),
       updatedAt: daysAgo(i % 10),
       updatedBy: pick(USERS, i).id,
     };
   });
+
+  // A handful of entries also have a translated sibling, to demo linked
+  // language versions each moving through their own workflow.
+  const siblings = base
+    .filter((_, i) => i % 4 === 0)
+    .map((e, j) => ({
+      id: `${e.id}t`,
+      groupId: e.groupId,
+      title: e.title,
+      contentTypeId: e.contentTypeId,
+      status: WORKFLOW_STEPS[0].id,
+      locale: SIBLING_LOCALE[e.locale] ?? "en",
+      channels: e.channels,
+      updatedAt: daysAgo((j * 3 + 2) % 10),
+      updatedBy: pick(USERS, j + 2).id,
+    }));
+
+  return [...base, ...siblings];
 }
 
 const CATALOGUE_CATEGORIES = [
@@ -336,14 +353,15 @@ export function getUser(id) {
 export const STATUS_LIST = STATUSES;
 export const LOCALE_LIST = LOCALES;
 export const LOCALE_LABELS = { en: "EN", cs: "CZ", de: "DE" };
+export const LOCALE_NAMES = { en: "English", cs: "Czech", de: "German" };
 
-export function normalizeEntryLocales(locales, fallbackLocale) {
-  if (Array.isArray(locales) && locales.length > 0) {
-    const valid = locales.filter((l) => LOCALE_LIST.includes(l));
-    if (valid.length > 0) return valid;
-  }
-  return [LOCALE_LIST.includes(fallbackLocale) ? fallbackLocale : LOCALE_LIST[0]];
+// Every entry belongs to a group of linked language versions (siblings),
+// each an independent entry with its own workflow/history. Entries seeded
+// before this field existed default to a group of one (their own id).
+export function normalizeEntryGroupId(entry) {
+  return entry.groupId ?? entry.id;
 }
+
 export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean", "Taxonomy"];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;

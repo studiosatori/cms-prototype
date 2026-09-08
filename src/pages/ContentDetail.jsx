@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import {
-  seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
+  seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
+  DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
   DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds, flattenTerms,
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
@@ -47,8 +48,6 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels }) {
       const c = channels.find((c) => c.id === value);
       return `Channels set to "${c?.name ?? value}" only`;
     }
-    case "locale":
-      return value !== prevEntry.locale ? `Locale changed to ${value.toUpperCase()}` : null;
     case "scheduledPublishAt": {
       const prevValue = prevEntry.scheduledPublishAt ?? null;
       if (value === prevValue) return null;
@@ -85,6 +84,7 @@ export default function ContentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
+  const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [rawWorkflowSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const workflowSteps = useMemo(() => normalizeWorkflowSteps(rawWorkflowSteps), [rawWorkflowSteps]);
@@ -104,6 +104,7 @@ export default function ContentDetail() {
   const [historyMode, setHistoryMode] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState(null); // null = current live version
   const [commentDraft, setCommentDraft] = useState("");
+  const [langDialogOpen, setLangDialogOpen] = useState(false);
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
 
@@ -116,6 +117,13 @@ export default function ContentDetail() {
       setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, status: normalized } : e)));
     }
   }, [entry, workflowSteps, id]);
+
+  // Self-heal entries that predate groupId (language versions were a single
+  // field back then) so sibling lookups below always have something to key on.
+  useEffect(() => {
+    const needsFix = entries.some((e) => !e.groupId);
+    if (needsFix) setEntries((prev) => prev.map((e) => ({ ...e, groupId: normalizeEntryGroupId(e) })));
+  }, [entries]);
 
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
 
@@ -198,6 +206,32 @@ export default function ContentDetail() {
     update({ comments: (entry.comments ?? []).filter((c) => c.id !== commentId) });
   }
 
+  // A language version is a fully independent entry (own workflow, history,
+  // comments), linked to its siblings only by groupId.
+  function createTranslation(locale) {
+    const newId = `e${Date.now()}`;
+    const newEntry = {
+      id: newId,
+      groupId,
+      title: entry.title,
+      contentTypeId: entry.contentTypeId,
+      status: workflowSteps[0]?.id,
+      locale,
+      channels: entry.channels,
+      updatedAt: new Date().toISOString(),
+      updatedBy: users[0]?.id,
+    };
+    setEntries([
+      {
+        ...newEntry,
+        history: [{ id: `h${Date.now()}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: "Entry created", snapshot: newEntry }],
+      },
+      ...entries,
+    ]);
+    setLangDialogOpen(false);
+    navigate(`/content/${newId}`);
+  }
+
   function openHistory() {
     setHistoryMode(true);
     setSelectedVersionId(null);
@@ -215,6 +249,9 @@ export default function ContentDetail() {
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);
   const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
   const entryIsAllChannels = isAllChannels(entry.channels);
+
+  const groupId = normalizeEntryGroupId(entry);
+  const siblings = entries.filter((e) => e.id !== entry.id && normalizeEntryGroupId(e) === groupId);
 
   const history = entry.history ?? [];
   const comments = entry.comments ?? [];
@@ -540,16 +577,22 @@ export default function ContentDetail() {
               </div>
             </DetailField>
             <DetailField label="Locale">
-              <select
-                value={entry.locale}
-                onChange={(e) => update({ locale: e.target.value })}
-                className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm uppercase"
-              >
-                {LOCALE_LIST.map((l) => (
-                  <option key={l} value={l}>{l}</option>
-                ))}
-              </select>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium uppercase text-gray-600">
+                {entry.locale}
+              </span>
+              {entry.locale === defaultLocale && (
+                <span className="ml-1.5 text-xs text-gray-400">Default language</span>
+              )}
             </DetailField>
+            <button
+              onClick={() => setLangDialogOpen(true)}
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <Languages size={14} /> Languages
+              <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
+                {siblings.length + 1}/{LOCALE_LIST.length}
+              </span>
+            </button>
             <DetailField label="Last updated by">
               <span className="inline-flex items-center gap-2">
                 <Avatar user={author} size={20} />
@@ -635,6 +678,72 @@ export default function ContentDetail() {
           </div>
         )}
       </div>
+
+      <Modal
+        open={langDialogOpen}
+        onClose={() => setLangDialogOpen(false)}
+        title="Languages"
+        footer={
+          <button
+            onClick={() => setLangDialogOpen(false)}
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Close
+          </button>
+        }
+      >
+        <div className="space-y-2">
+          {LOCALE_LIST.map((l) => {
+            const isCurrent = l === entry.locale;
+            const sibling = isCurrent ? entry : siblings.find((s) => s.locale === l);
+            const step = sibling ? workflowSteps.find((s) => s.id === normalizeEntryStatus(sibling.status, workflowSteps)) : null;
+            return (
+              <div
+                key={l}
+                className={`flex items-center justify-between rounded-md border px-3 py-2.5 ${
+                  isCurrent ? "border-violet-200 bg-violet-50" : "border-gray-200"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 shrink-0 text-sm font-semibold text-gray-500">{LOCALE_LABELS[l]}</span>
+                  <div>
+                    <p className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
+                      {LOCALE_NAMES[l] ?? l}
+                      {l === defaultLocale && (
+                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">Default</span>
+                      )}
+                    </p>
+                    {sibling ? (
+                      <div className="mt-0.5">
+                        <StatusPill status={step?.name ?? sibling.status} color={step?.color} />
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400">No version in this language yet</p>
+                    )}
+                  </div>
+                </div>
+                {isCurrent ? (
+                  <span className="text-xs font-medium text-violet-600">Current</span>
+                ) : sibling ? (
+                  <button
+                    onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
+                    className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Open
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => createTranslation(l)}
+                    className="rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
+                  >
+                    Create
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Modal>
 
       <Modal
         open={pendingPublish}
