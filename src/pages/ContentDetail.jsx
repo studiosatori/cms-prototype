@@ -622,7 +622,6 @@ export default function ContentDetail() {
                   const commenter = users.find((u) => u.id === c.userId);
                   return (
                     <div key={c.id} className="group flex items-start gap-2.5 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                      <Avatar user={commenter} size={22} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="truncate text-sm font-medium text-gray-900">{commenter?.name}</span>
@@ -644,7 +643,6 @@ export default function ContentDetail() {
               </div>
 
               <div className="mt-4 flex items-start gap-2.5">
-                <Avatar user={users[0]} size={22} />
                 <div className="min-w-0 flex-1">
                   <textarea
                     rows={2}
