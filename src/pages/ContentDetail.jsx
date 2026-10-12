@@ -472,7 +472,7 @@ export default function ContentDetail() {
         )}
 
         {historyMode ? (
-          <div className="w-72 shrink-0 space-y-3 rounded-lg border border-gray-300 bg-white p-5">
+          <div className="w-80 shrink-0 space-y-3 rounded-lg border border-gray-300 bg-white p-6">
             <button
               onClick={exitHistory}
               className="flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
@@ -523,7 +523,7 @@ export default function ContentDetail() {
             </div>
           </div>
         ) : (
-          <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
+          <div className="w-80 shrink-0 space-y-6 rounded-lg border border-gray-300 bg-white p-6">
             <DetailField label="Status">
               <select
                 value={displayStatus}
@@ -607,8 +607,8 @@ export default function ContentDetail() {
               )}
             </button>
 
-            <div className="border-t border-gray-100 pt-5">
-              <p className="mb-3 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
+            <div className="border-t border-gray-200 pt-6">
+              <p className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
                 <MessageCircle size={13} /> Comments
                 {comments.length > 0 && (
                   <span className="rounded-full bg-gray-100 px-1.5 text-[11px] font-normal normal-case text-gray-500">
@@ -621,14 +621,14 @@ export default function ContentDetail() {
                 {[...comments].reverse().map((c) => {
                   const commenter = users.find((u) => u.id === c.userId);
                   return (
-                    <div key={c.id} className="group flex items-start gap-2">
+                    <div key={c.id} className="group flex items-start gap-2.5 rounded-lg border border-gray-200 bg-gray-50 p-3">
                       <Avatar user={commenter} size={22} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="truncate text-sm font-medium text-gray-900">{commenter?.name}</span>
                           <span className="shrink-0 text-xs text-gray-400">{formatScheduled(c.timestamp)}</span>
                         </div>
-                        <p className="whitespace-pre-wrap text-sm text-gray-700">{c.text}</p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{c.text}</p>
                       </div>
                       <button
                         onClick={() => deleteComment(c.id)}
@@ -643,7 +643,7 @@ export default function ContentDetail() {
                 {comments.length === 0 && <p className="text-sm text-gray-400">No comments yet.</p>}
               </div>
 
-              <div className="mt-3 flex items-start gap-2">
+              <div className="mt-4 flex items-start gap-2.5">
                 <Avatar user={users[0]} size={22} />
                 <div className="min-w-0 flex-1">
                   <textarea
@@ -659,7 +659,7 @@ export default function ContentDetail() {
                     placeholder="Leave a comment…"
                     className="w-full resize-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
                   />
-                  <div className="mt-1.5 flex justify-end">
+                  <div className="mt-2 flex justify-end">
                     <button
                       onClick={addComment}
                       disabled={!commentDraft.trim()}
