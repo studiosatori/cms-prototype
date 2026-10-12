@@ -4,7 +4,7 @@
 export const CS = {
   // Navigation
   "Content": "Obsah",
-  "Content types": "Typy obsahu",
+  "Content types": "Obsahové vzory",
   "Taxonomies": "Taxonomie",
   "Media": "Média",
   "Settings": "Nastavení",
@@ -15,7 +15,7 @@ export const CS = {
   "Recent": "Nedávné",
   "Scheduled": "Naplánované",
   "Workflow step": "Krok workflow",
-  "Content type": "Typ obsahu",
+  "Content type": "Obsahový vzor",
   "Channel": "Kanál",
   "Language": "Jazyk",
 
@@ -49,7 +49,7 @@ export const CS = {
 
   // Tables and filters
   "Name": "Název",
-  "Content Type": "Typ obsahu",
+  "Content Type": "Obsahový vzor",
   "Updated": "Upraveno",
   "Last updated by": "Naposledy upraveno uživatelem",
   "Updated by": "Upraveno uživatelem",
@@ -123,15 +123,15 @@ export const CS = {
   // Content types
   "Fields": "Pole",
   "Entries": "Položky",
-  "Entries using this type": "Položky používající tento typ",
+  "Entries using this type": "Položky používající tento vzor",
   "Icon": "Ikona",
   "Has field type": "Obsahuje typ pole",
   "Type": "Typ",
   "Add field": "Přidat pole",
   "Choose taxonomy…": "Vyberte taxonomii…",
   "No fields yet.": "Zatím žádná pole.",
-  "Content type not found.": "Typ obsahu nenalezen.",
-  "Back to Content types": "Zpět na typy obsahu",
+  "Content type not found.": "Obsahový vzor nenalezen.",
+  "Back to Content types": "Zpět na obsahové vzory",
   "Text": "Text",
   "Rich text": "Formátovaný text",
   "Number": "Číslo",
