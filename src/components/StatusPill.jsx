@@ -1,7 +1,7 @@
 const STYLES = {
-  Published: "bg-white text-black ring-black before:bg-black",
-  Draft: "bg-white text-black ring-black before:bg-gray-400",
-  Changed: "bg-white text-black ring-black before:bg-gray-700",
+  Published: "bg-white text-gray-800 ring-gray-300 before:bg-gray-700",
+  Draft: "bg-white text-gray-800 ring-gray-300 before:bg-gray-400",
+  Changed: "bg-white text-gray-800 ring-gray-300 before:bg-gray-700",
   Archived: "bg-white text-gray-500 ring-gray-400 before:bg-gray-300",
 };
 
@@ -9,7 +9,7 @@ export default function StatusPill({ status, color }) {
   if (color) {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-black ring-1 ring-inset ring-black"
+        className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
       >
         <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
         {status}

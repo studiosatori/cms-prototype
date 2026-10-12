@@ -58,13 +58,13 @@ export default function ContentTypeDetail() {
       <PageHeader crumbs={["Content types", name || type.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
       <div className="flex gap-6">
-        <div className="flex-1 space-y-5 rounded-lg border border-black bg-white p-5">
+        <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
           <DetailField label="Name">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={() => update({ name: name.trim() || type.name })}
-              className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
 
@@ -77,11 +77,11 @@ export default function ContentTypeDetail() {
             </div>
             <div className="space-y-2">
               {type.fields.map((f, i) => (
-                <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-black bg-white p-2">
+                <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-gray-300 bg-white p-2">
                   <input
                     value={f.name}
                     onChange={(e) => updateField(i, { name: e.target.value })}
-                    className="flex-1 rounded-md border border-black bg-white px-2 py-1 text-sm"
+                    className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                   />
                   <select
                     value={f.type}
@@ -92,7 +92,7 @@ export default function ContentTypeDetail() {
                         taxonomyId: nextType === "Taxonomy" ? (f.taxonomyId ?? taxonomies[0]?.id) : undefined,
                       });
                     }}
-                    className="rounded-md border border-black bg-white px-2 py-1 text-sm"
+                    className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                   >
                     {FIELD_TYPE_LIST.map((ft) => (
                       <option key={ft} value={ft}>{ft}</option>
@@ -122,7 +122,7 @@ export default function ContentTypeDetail() {
           </div>
         </div>
 
-        <div className="w-72 shrink-0 space-y-5 rounded-lg border border-black bg-white p-5">
+        <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
           <DetailField label="Icon">
             <Icon size={20} style={{ color: type.color }} />
           </DetailField>

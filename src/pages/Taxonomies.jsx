@@ -61,7 +61,7 @@ export default function Taxonomies() {
         <FilterBar search={search} onSearchChange={setSearch} />
       </div>
 
-      <div className="rounded-lg border border-black bg-white">
+      <div className="rounded-lg border border-gray-300 bg-white">
         <DataTable
           columns={columns}
           rows={filtered}

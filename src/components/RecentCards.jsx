@@ -16,7 +16,7 @@ export default function RecentCards({ items }) {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex min-w-[220px] items-center gap-2.5 rounded-lg border border-black bg-white px-3 py-2.5 hover:border-black hover:shadow-sm"
+            className="flex min-w-[220px] items-center gap-2.5 rounded-lg border border-gray-300 bg-white px-3 py-2.5 hover:border-gray-400 hover:shadow-sm"
           >
             <Avatar user={getUser(item.authorId ?? item.updatedBy)} size={28} />
             <div className="min-w-0">

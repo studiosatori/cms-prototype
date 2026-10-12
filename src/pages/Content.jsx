@@ -201,7 +201,7 @@ export default function Content() {
       },
       render: (r) =>
         isAllChannels(r.channels) ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-black">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
             All channels
           </span>
         ) : (
@@ -273,7 +273,7 @@ export default function Content() {
               <select
                 value={activeLocale}
                 onChange={(e) => setActiveLocale(e.target.value)}
-                className="appearance-none rounded-md border border-black bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
+                className="appearance-none rounded-md border border-gray-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
               >
                 {LOCALE_LIST.map((l) => (
                   <option key={l} value={l}>
@@ -306,25 +306,25 @@ export default function Content() {
         </div>
 
         {adding && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-black bg-white p-3">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-gray-300 bg-white p-3">
             <input
               autoFocus
               value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addEntry()}
               placeholder="Entry title…"
-              className="flex-1 rounded-md border border-black bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="flex-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
             />
             <select
               value={draftType}
               onChange={(e) => setDraftType(e.target.value)}
-              className="rounded-md border border-black bg-white px-2.5 py-1.5 text-sm"
+              className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >
               {contentTypes.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
               ))}
             </select>
-            <button onClick={addEntry} className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800">
+            <button onClick={addEntry} className="rounded-md bg-gray-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700">
               Create
             </button>
             <button onClick={() => setAdding(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
@@ -333,7 +333,7 @@ export default function Content() {
           </div>
         )}
 
-        <div className="rounded-lg border border-black bg-white">
+        <div className="rounded-lg border border-gray-300 bg-white">
           <DataTable
             columns={columns}
             rows={filtered}

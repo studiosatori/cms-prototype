@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
-/* Wireframe look: black & white, hairline black outlines, square corners, no
-   soft shadows. Colour is stripped globally (see the grayscale filter below);
-   the violet "brand" scale is redefined as pure neutrals so primary buttons,
-   focus rings and links read as black instead of mid-gray. */
+/* Wireframe look: shades of black and grey, light grey outlines, soft rounded
+   corners. Colour is stripped globally (see the grayscale filter below); the
+   violet "brand" scale is redefined as neutrals so primary buttons, focus
+   borders and links render charcoal instead of a hue. */
 @theme {
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-  --color-violet-50: #f4f4f4;
+  --color-violet-50: #f5f5f5;
   --color-violet-100: #e8e8e8;
-  --color-violet-200: #cfcfcf;
+  --color-violet-200: #d9d9d9;
   --color-violet-300: #a8a8a8;
-  --color-violet-400: #000000;
+  --color-violet-400: #8a8a8a;
   --color-violet-500: #333333;
-  --color-violet-600: #000000;
-  --color-violet-700: #262626;
+  --color-violet-600: #2e2e2e;
+  --color-violet-700: #1c1c1c;
   --color-violet-800: #1a1a1a;
-  --color-violet-900: #000000;
+  --color-violet-900: #111111;
 }
 
 html, body, #root {
@@ -29,24 +29,14 @@ html {
 
 body {
   background-color: #ffffff;
-  color: #000000;
+  color: #1f1f1f;
 }
 
 * {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Square corners everywhere except deliberately round things (avatars, dots,
-   tags via rounded-full, and the phone mockup's arbitrary radius). */
-.rounded,
-.rounded-sm,
-.rounded-md,
-.rounded-lg,
-.rounded-xl {
-  border-radius: 0;
-}
-
-/* Flat: no soft drop shadows. Floating panels get a hard offset edge instead. */
+/* Flat cards; only floating panels (menus, dialogs) get a soft shadow. */
 .shadow,
 .shadow-sm,
 .shadow-lg,
@@ -55,15 +45,15 @@ body {
   box-shadow: none;
 }
 .wf-pop {
-  box-shadow: 3px 3px 0 #000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
 
 /* Image placeholder: the classic wireframe box with a cross through it. */
 .wf-image {
   background-color: #fff;
   background-image:
-    linear-gradient(to top right, transparent calc(50% - 0.5px), #000 calc(50% - 0.5px), #000 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
-    linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 calc(50% - 0.5px), #000 calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    linear-gradient(to top right, transparent calc(50% - 0.5px), #b3b3b3 calc(50% - 0.5px), #b3b3b3 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), #b3b3b3 calc(50% - 0.5px), #b3b3b3 calc(50% + 0.5px), transparent calc(50% + 0.5px));
 }
 
 ::-webkit-scrollbar {

@@ -30,11 +30,11 @@ export function FilterBar({
 
   return (
     <div className="space-y-2.5">
-      <div className="flex items-center gap-2 rounded-lg border border-black bg-white px-2 py-1.5">
+      <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-2 py-1.5">
         {typeFacetLabel && (
           <button className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200">
             {typeFacetLabel}
-            <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-black">{typeLabel}</span>
+            <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-gray-300">{typeLabel}</span>
           </button>
         )}
         <div className="flex flex-1 items-center gap-2 px-1">
@@ -65,7 +65,7 @@ export function FilterBar({
             </button>
 
             {open && (
-              <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-lg border border-black bg-white p-3 wf-pop">
+              <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-300 bg-white p-3 wf-pop">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Filters</p>
                   {activeCount > 0 && (
@@ -85,7 +85,7 @@ export function FilterBar({
                         <select
                           value={filterValues[f.key] ?? ""}
                           onChange={(e) => onFilterChange?.(f.key, e.target.value || null)}
-                          className="w-full appearance-none rounded-md border border-black bg-white px-2.5 py-1.5 pr-7 text-sm focus:border-violet-400 focus:outline-none"
+                          className="w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 pr-7 text-sm focus:border-violet-400 focus:outline-none"
                         >
                           <option value="">Any</option>
                           {f.options.map((opt) => (
@@ -117,7 +117,7 @@ export function FilterBar({
           {chips.map((chip) => (
             <button
               key={chip}
-              className="flex items-center gap-1 rounded-full border border-dashed border-black px-2.5 py-1 text-xs font-medium text-gray-500 hover:border-black hover:text-gray-700"
+              className="flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700"
             >
               <Plus size={12} />
               {chip}

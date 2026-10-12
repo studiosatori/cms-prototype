@@ -35,7 +35,7 @@ function GeneralPanel() {
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
         />
       </div>
       <div>
@@ -43,14 +43,14 @@ function GeneralPanel() {
         <select
           value={locale}
           onChange={(e) => setLocale(e.target.value)}
-          className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
         >
           <option value="en">English (en)</option>
           <option value="cs">Czech (cs)</option>
           <option value="de">German (de)</option>
         </select>
       </div>
-      <button className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+      <button className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
         Save changes
       </button>
     </div>
@@ -96,7 +96,7 @@ function WorkflowPanel() {
         {steps.map((s, i) => (
           <span key={s.id} className="flex items-center gap-1.5">
             <span
-              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-black ring-1 ring-inset ring-black"
+              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
               {s.name || `Step ${i + 1}`}
@@ -108,7 +108,7 @@ function WorkflowPanel() {
 
       <div className="space-y-2">
         {steps.map((s, i) => (
-          <div key={s.id} className="space-y-2 rounded-md border border-black bg-white p-2">
+          <div key={s.id} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
             <div className="flex items-center gap-2">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-500">
                 {i + 1}
@@ -116,7 +116,7 @@ function WorkflowPanel() {
               <input
                 value={s.name}
                 onChange={(e) => updateStep(i, { name: e.target.value })}
-                className="flex-1 rounded-md border border-black bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
               />
               <button
                 onClick={() => moveStep(i, -1)}
@@ -213,7 +213,7 @@ function ChannelsPanel() {
           return (
             <span
               key={c.id}
-              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-black ring-1 ring-inset ring-black"
+              className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <Icon size={12} />
               {c.name}
@@ -226,17 +226,17 @@ function ChannelsPanel() {
         {channels.map((c, i) => {
           const Icon = CHANNEL_ICONS[c.icon] || Radio;
           return (
-            <div key={c.id} className="space-y-2 rounded-md border border-black bg-white p-2">
+            <div key={c.id} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
               <div className="flex items-center gap-2">
                 <span
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-black bg-white text-black"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-800"
                 >
                   <Icon size={13} />
                 </span>
                 <input
                   value={c.name}
                   onChange={(e) => updateChannel(i, { name: e.target.value })}
-                  className="flex-1 rounded-md border border-black bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+                  className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
                 />
                 <button
                   onClick={() => moveChannel(i, -1)}
@@ -337,7 +337,7 @@ function UsersPanel() {
           value={r.role}
           onChange={(e) => setRole(r.id, e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="rounded-md border border-black bg-white px-2 py-1 text-sm"
+          className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
         >
           {ROLES.map((role) => (
             <option key={role} value={role}>{role}</option>
@@ -348,7 +348,7 @@ function UsersPanel() {
   ];
 
   return (
-    <div className="rounded-lg border border-black bg-white">
+    <div className="rounded-lg border border-gray-300 bg-white">
       <DataTable columns={columns} rows={users} selected={selected} onSelectedChange={setSelected} />
     </div>
   );
@@ -362,7 +362,7 @@ function ApiKeysPanel() {
     { key: "lastUsed", header: "Last used", render: (r) => <span className="text-gray-500">{r.lastUsed}</span> },
   ];
   return (
-    <div className="rounded-lg border border-black bg-white">
+    <div className="rounded-lg border border-gray-300 bg-white">
       <DataTable columns={columns} rows={API_KEYS} selectable={false} />
     </div>
   );
@@ -373,7 +373,7 @@ export default function Settings() {
 
   return (
     <div className="flex h-full min-h-0">
-      <aside className="w-56 shrink-0 border-r border-black bg-white p-3">
+      <aside className="w-56 shrink-0 border-r border-gray-300 bg-white p-3">
         <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Settings</p>
         <div className="space-y-2">
           {TABS.map((t) => (
@@ -381,7 +381,7 @@ export default function Settings() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm ${
-                tab === t.id ? "bg-black font-medium text-white" : "text-gray-700 hover:bg-gray-100"
+                tab === t.id ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               {t.label}

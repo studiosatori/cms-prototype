@@ -25,7 +25,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white">
+    <div className="flex h-screen flex-col bg-gray-50">
       <TopNav />
       <main className="min-h-0 flex-1">
         <Routes>

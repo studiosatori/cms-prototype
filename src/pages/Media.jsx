@@ -42,7 +42,7 @@ export default function Media() {
       sortValue: (r) => r.name,
       render: (r) => (
         <span className="inline-flex items-center gap-2.5">
-          <span className="wf-image block h-8 w-8 border border-black" />
+          <span className="wf-image block h-8 w-8 border border-gray-300" />
           <span className="font-medium text-gray-900">{r.name}</span>
         </span>
       ),
@@ -96,7 +96,7 @@ export default function Media() {
       </div>
 
       {view === "list" ? (
-        <div className="rounded-lg border border-black bg-white">
+        <div className="rounded-lg border border-gray-300 bg-white">
           <DataTable columns={columns} rows={filtered} selected={selected} onSelectedChange={setSelected} defaultSort={{ key: "updatedAt", dir: "desc" }} />
         </div>
       ) : (
@@ -106,9 +106,9 @@ export default function Media() {
             return (
               <div
                 key={r.id}
-                className="group overflow-hidden rounded-lg border border-black bg-white hover:border-black hover:shadow-sm"
+                className="group overflow-hidden rounded-lg border border-gray-300 bg-white hover:border-gray-400 hover:shadow-sm"
               >
-                <div className="wf-image aspect-square border-b border-black" />
+                <div className="wf-image aspect-square border-b border-gray-300" />
                 <div className="p-2.5">
                   <p className="truncate text-sm font-medium text-gray-900" title={r.name}>{r.name}</p>
                   <div className="mt-1 flex items-center justify-between text-xs text-gray-400">

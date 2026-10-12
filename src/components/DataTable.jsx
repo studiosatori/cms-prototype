@@ -60,12 +60,12 @@ export default function DataTable({
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-black text-left text-xs text-gray-500">
+          <tr className="border-b border-gray-300 text-left text-xs text-gray-500">
             {selectable && (
               <th className="w-10 py-2.5 pl-4 pr-2">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-black accent-gray-900"
+                  className="h-4 w-4 rounded border-gray-300 accent-gray-900"
                   checked={allChecked}
                   ref={(el) => el && (el.indeterminate = someChecked)}
                   onChange={toggleAll}
@@ -105,7 +105,7 @@ export default function DataTable({
                   <td className="py-2.5 pl-4 pr-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-black accent-gray-900"
+                      className="h-4 w-4 rounded border-gray-300 accent-gray-900"
                       checked={!!isSelected}
                       onChange={() => toggleOne(id)}
                     />

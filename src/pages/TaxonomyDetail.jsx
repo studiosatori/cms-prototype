@@ -17,7 +17,7 @@ function TermRow({ term, depth, index, siblingCount, onRename, onAddChild, onRem
         <input
           value={term.name}
           onChange={(e) => onRename(term.id, e.target.value)}
-          className="flex-1 rounded-md border border-black bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
+          className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
         />
         <button
           onClick={() => onAddChild(term.id)}
@@ -118,13 +118,13 @@ export default function TaxonomyDetail() {
     <div className="flex-1 overflow-y-auto p-6">
       <PageHeader crumbs={["Taxonomies", name || taxonomy.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
-      <div className="max-w-2xl space-y-5 rounded-lg border border-black bg-white p-5">
+      <div className="max-w-2xl space-y-5 rounded-lg border border-gray-300 bg-white p-5">
         <DetailField label="Name">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => update({ name: name.trim() || taxonomy.name })}
-            className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
           />
         </DetailField>
 
@@ -133,7 +133,7 @@ export default function TaxonomyDetail() {
             value={taxonomy.description ?? ""}
             onChange={(e) => update({ description: e.target.value })}
             placeholder="What is this taxonomy used for?"
-            className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
           />
         </DetailField>
 
@@ -144,7 +144,7 @@ export default function TaxonomyDetail() {
               <Plus size={13} /> Add term
             </button>
           </div>
-          <div className="space-y-1 rounded-md border border-black bg-white p-2">
+          <div className="space-y-1 rounded-md border border-gray-300 bg-white p-2">
             {taxonomy.terms.map((t, i) => (
               <TermRow
                 key={t.id}
