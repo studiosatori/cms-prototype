@@ -16,12 +16,12 @@ const TABS = [
 export default function TopNav() {
   const me = seedUsers()[0];
   return (
-    <header className="flex h-16 shrink-0 items-center gap-1 border-b border-gray-200 bg-white px-4">
-      <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-gray-200">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-black font-serif text-xl leading-none text-white">
+    <header className="flex h-16 shrink-0 items-center gap-1 border-b border-black bg-white px-4">
+      <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-black">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-black font-mono text-xl leading-none text-white">
           P
         </div>
-        <span className="whitespace-nowrap font-serif text-xl font-semibold tracking-tight text-gray-900">Prague CMS</span>
+        <span className="whitespace-nowrap font-mono text-xl font-semibold tracking-tight text-gray-900">Prague CMS</span>
       </div>
 
       <nav className="flex items-center gap-1">
@@ -32,7 +32,7 @@ export default function TopNav() {
             className={({ isActive }) =>
               `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-violet-50 text-violet-700 ring-1 ring-inset ring-violet-200"
+                  ? "bg-black text-white"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`
             }

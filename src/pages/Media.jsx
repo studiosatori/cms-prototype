@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, Image as ImageIcon, FileType, List, LayoutGrid } from "lucide-react";
+import { Upload, List, LayoutGrid } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { seedMedia, seedUsers, getUser } from "../lib/seed";
 import DataTable from "../components/DataTable";
@@ -42,16 +42,7 @@ export default function Media() {
       sortValue: (r) => r.name,
       render: (r) => (
         <span className="inline-flex items-center gap-2.5">
-          <span
-            className="flex h-8 w-8 items-center justify-center rounded-md"
-            style={{ backgroundColor: r.color + "40" }}
-          >
-            {r.kind === "vector" ? (
-              <FileType size={15} style={{ color: r.color }} />
-            ) : (
-              <ImageIcon size={15} style={{ color: r.color }} />
-            )}
-          </span>
+          <span className="wf-image block h-8 w-8 border border-black" />
           <span className="font-medium text-gray-900">{r.name}</span>
         </span>
       ),
@@ -105,7 +96,7 @@ export default function Media() {
       </div>
 
       {view === "list" ? (
-        <div className="rounded-lg border border-gray-200 bg-white">
+        <div className="rounded-lg border border-black bg-white">
           <DataTable columns={columns} rows={filtered} selected={selected} onSelectedChange={setSelected} defaultSort={{ key: "updatedAt", dir: "desc" }} />
         </div>
       ) : (
@@ -115,18 +106,9 @@ export default function Media() {
             return (
               <div
                 key={r.id}
-                className="group overflow-hidden rounded-lg border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                className="group overflow-hidden rounded-lg border border-black bg-white hover:border-black hover:shadow-sm"
               >
-                <div
-                  className="flex aspect-square items-center justify-center"
-                  style={{ backgroundColor: r.color + "30" }}
-                >
-                  {r.kind === "vector" ? (
-                    <FileType size={32} style={{ color: r.color }} />
-                  ) : (
-                    <ImageIcon size={32} style={{ color: r.color }} />
-                  )}
-                </div>
+                <div className="wf-image aspect-square border-b border-black" />
                 <div className="p-2.5">
                   <p className="truncate text-sm font-medium text-gray-900" title={r.name}>{r.name}</p>
                   <div className="mt-1 flex items-center justify-between text-xs text-gray-400">

@@ -7,7 +7,7 @@ function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
     <button
       onClick={onClick}
       className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
-        active ? "bg-gray-100 font-medium text-gray-900" : "text-gray-600 hover:bg-gray-50"
+        active ? "bg-black font-medium text-white" : "text-gray-700 hover:bg-gray-100"
       }`}
     >
       {color ? (
@@ -36,7 +36,7 @@ export default function Sidebar({
   const reset = { status: null, typeId: null, channelId: null };
 
   return (
-    <aside className="w-60 shrink-0 space-y-4 border-r border-gray-200 bg-white p-3">
+    <aside className="w-60 shrink-0 space-y-4 border-r border-black bg-white p-3">
       <div className="space-y-0.5">
         <Item icon={List} label={allLabel} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
         <Item icon={Clock} label="Recent" active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", ...reset })} />

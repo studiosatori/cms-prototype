@@ -163,7 +163,7 @@ export default function Catalogue() {
           />
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white">
+        <div className="rounded-lg border border-black bg-white">
           <BulkActionBar count={selected.size} total={filtered.length} onDelete={deleteSelected} />
           <DataTable
             columns={columns}

@@ -18,8 +18,8 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {!isPublished && <DraftBanner />}
-      <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <span className="font-serif text-lg font-semibold">{channel.name}</span>
+      <header className="flex items-center justify-between border-b border-black px-6 py-4">
+        <span className="font-mono text-lg font-semibold">{channel.name}</span>
         <nav className="flex gap-5 text-sm text-gray-500">
           <span>Home</span>
           <span>Explore</span>

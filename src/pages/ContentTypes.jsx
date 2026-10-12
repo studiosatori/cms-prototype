@@ -87,7 +87,7 @@ export default function ContentTypes() {
         />
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-black bg-white">
         <DataTable
           columns={columns}
           rows={filtered}

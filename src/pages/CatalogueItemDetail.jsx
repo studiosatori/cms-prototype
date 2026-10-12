@@ -51,27 +51,27 @@ export default function CatalogueItemDetail() {
       <PageHeader crumbs={["Catalogue", category?.name, name || item.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
 
       <div className="flex gap-6">
-        <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
+        <div className="flex-1 space-y-5 rounded-lg border border-black bg-white p-5">
           <DetailField label="Name">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={() => update({ name: name.trim() || item.name })}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
           <DetailField label="URL">
             <input
               value={item.url}
               onChange={(e) => update({ url: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
           <DetailField label="Locale">
             <select
               value={item.locale}
               onChange={(e) => update({ locale: e.target.value })}
-              className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm uppercase"
+              className="rounded-md border border-black bg-white px-2.5 py-1.5 text-sm uppercase"
             >
               {LOCALE_LIST.map((l) => (
                 <option key={l} value={l}>{l}</option>
@@ -80,12 +80,12 @@ export default function CatalogueItemDetail() {
           </DetailField>
         </div>
 
-        <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
+        <div className="w-72 shrink-0 space-y-5 rounded-lg border border-black bg-white p-5">
           <DetailField label="Status">
             <select
               value={item.status}
               onChange={(e) => update({ status: e.target.value })}
-              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+              className="w-full rounded-md border border-black bg-white px-2.5 py-1.5 text-sm"
             >
               {STATUS_LIST.map((s) => (
                 <option key={s} value={s}>{s}</option>

@@ -21,7 +21,7 @@ export default function PreviewButton({ entryId, channels, defaultChannelId }) {
 
   return (
     <div className="relative inline-flex" ref={ref}>
-      <div className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-gray-300">
+      <div className="inline-flex overflow-hidden rounded-md ring-1 ring-inset ring-black">
         <button
           onClick={() => openPreview(defaultChannelId)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-900"
@@ -30,14 +30,14 @@ export default function PreviewButton({ entryId, channels, defaultChannelId }) {
         </button>
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex items-center border-l border-gray-300 px-1.5 py-1.5 text-gray-500 hover:bg-gray-300 hover:text-gray-900"
+          className="flex items-center border-l border-black px-1.5 py-1.5 text-gray-500 hover:bg-gray-300 hover:text-gray-900"
         >
           <ChevronDown size={14} />
         </button>
       </div>
 
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-gray-200 bg-white p-1 shadow-lg">
+        <div className="absolute right-0 top-full z-20 mt-1 w-48 rounded-md border border-black bg-white p-1 wf-pop">
           {channels.map((c) => (
             <button
               key={c.id}

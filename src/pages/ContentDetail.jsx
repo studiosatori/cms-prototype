@@ -272,7 +272,7 @@ export default function ContentDetail() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLangDialogOpen(true)}
-              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-black hover:bg-gray-200 hover:text-gray-900"
             >
               <Languages size={14} /> Languages
               <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
@@ -290,7 +290,7 @@ export default function ContentDetail() {
 
       <div className="flex gap-6">
         {historyMode ? (
-          <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
+          <div className="flex-1 space-y-5 rounded-lg border border-black bg-white p-5">
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
               Viewing a read-only {selectedVersion ? "past version" : "snapshot of the current version"}. Use Back to resume editing.
             </div>
@@ -313,7 +313,7 @@ export default function ContentDetail() {
             </DetailField>
             <DetailField label="Channels">
               {viewIsAllChannels ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-black">
                   All channels
                 </span>
               ) : (
@@ -337,20 +337,20 @@ export default function ContentDetail() {
             </DetailField>
           </div>
         ) : (
-          <div className="flex-1 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
+          <div className="flex-1 space-y-5 rounded-lg border border-black bg-white p-5">
             <DetailField label="Title">
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => update({ title: title.trim() || entry.title })}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
               />
             </DetailField>
             <DetailField label="Slug">
               <input
                 disabled
                 value={`/${entry.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
-                className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500"
+                className="w-full rounded-md border border-black bg-gray-50 px-3 py-2 text-sm text-gray-500"
               />
             </DetailField>
             <DetailField label="Body">
@@ -359,7 +359,7 @@ export default function ContentDetail() {
                 placeholder="Rich text content goes here…"
                 defaultValue={entry.body ?? ""}
                 onBlur={(e) => update({ body: e.target.value })}
-                className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                className="w-full resize-none rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
               />
             </DetailField>
 
@@ -372,7 +372,7 @@ export default function ContentDetail() {
                 return (
                   <DetailField key={f.name} label={f.name}>
                     {taxonomy ? (
-                      <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-200 bg-white p-2">
+                      <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-black bg-white p-2">
                         {flattenTerms(taxonomy.terms).map((t) => (
                           <label
                             key={t.id}
@@ -383,7 +383,7 @@ export default function ContentDetail() {
                               type="checkbox"
                               checked={selected.includes(t.id)}
                               onChange={() => toggleTaxonomyTerm(f.name, t.id)}
-                              className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
+                              className="h-3.5 w-3.5 rounded border-black accent-violet-600"
                             />
                             {t.name}
                           </label>
@@ -406,7 +406,7 @@ export default function ContentDetail() {
                       rows={4}
                       defaultValue={value ?? ""}
                       onBlur={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                      className="w-full resize-none rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
                     />
                   </DetailField>
                 );
@@ -419,7 +419,7 @@ export default function ContentDetail() {
                       type="number"
                       value={value ?? ""}
                       onChange={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                      className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
                     />
                   </DetailField>
                 );
@@ -433,7 +433,7 @@ export default function ContentDetail() {
                         type="checkbox"
                         checked={value ?? false}
                         onChange={(e) => setFieldValue(f.name, e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 accent-violet-600"
+                        className="h-4 w-4 rounded border-black accent-violet-600"
                       />
                       {value ? "Yes" : "No"}
                     </label>
@@ -447,7 +447,7 @@ export default function ContentDetail() {
                     <select
                       value={value ?? ""}
                       onChange={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+                      className="w-full rounded-md border border-black bg-white px-2.5 py-1.5 text-sm"
                     >
                       <option value="">None</option>
                       {media.map((m) => (
@@ -463,7 +463,7 @@ export default function ContentDetail() {
                   <input
                     defaultValue={value ?? ""}
                     onBlur={(e) => setFieldValue(f.name, e.target.value)}
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                    className="w-full rounded-md border border-black bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
                   />
                 </DetailField>
               );
@@ -472,7 +472,7 @@ export default function ContentDetail() {
         )}
 
         {historyMode ? (
-          <div className="w-72 shrink-0 space-y-3 rounded-lg border border-gray-200 bg-white p-5">
+          <div className="w-72 shrink-0 space-y-3 rounded-lg border border-black bg-white p-5">
             <button
               onClick={exitHistory}
               className="flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-900 px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
@@ -523,12 +523,12 @@ export default function ContentDetail() {
             </div>
           </div>
         ) : (
-          <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-200 bg-white p-5">
+          <div className="w-72 shrink-0 space-y-5 rounded-lg border border-black bg-white p-5">
             <DetailField label="Status">
               <select
                 value={displayStatus}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
+                className="w-full rounded-md border border-black bg-white px-2.5 py-1.5 text-sm"
               >
                 {workflowSteps.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -557,12 +557,9 @@ export default function ContentDetail() {
               <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={setAllChannels}
-                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors"
-                  style={
-                    entryIsAllChannels
-                      ? { backgroundColor: "#111827", color: "#fff", "--tw-ring-color": "#111827" }
-                      : { backgroundColor: "transparent", color: "#9ca3af", "--tw-ring-color": "#d1d5db" }
-                  }
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
+                    entryIsAllChannels ? "bg-black text-white ring-black" : "bg-white text-gray-500 ring-gray-400 hover:text-black"
+                  }`}
                 >
                   All channels
                 </button>
@@ -573,12 +570,9 @@ export default function ContentDetail() {
                     <button
                       key={c.id}
                       onClick={() => selectChannel(c.id)}
-                      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors"
-                      style={
-                        active
-                          ? { backgroundColor: c.color, color: "#fff", "--tw-ring-color": c.color }
-                          : { backgroundColor: "transparent", color: "#9ca3af", "--tw-ring-color": "#d1d5db" }
-                      }
+                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
+                        active ? "bg-black text-white ring-black" : "bg-white text-gray-500 ring-gray-400 hover:text-black"
+                      }`}
                     >
                       <Icon size={12} />
                       {c.name}
@@ -603,7 +597,7 @@ export default function ContentDetail() {
             </DetailField>
             <button
               onClick={openHistory}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-black bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               <History size={14} /> Version history
               {history.length > 0 && (
@@ -663,7 +657,7 @@ export default function ContentDetail() {
                       }
                     }}
                     placeholder="Leave a comment…"
-                    className="w-full resize-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+                    className="w-full resize-none rounded-md border border-black bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
                   />
                   <div className="mt-1.5 flex justify-end">
                     <button
@@ -703,7 +697,7 @@ export default function ContentDetail() {
               <div
                 key={l}
                 className={`flex items-center justify-between rounded-md border px-3 py-2.5 ${
-                  isCurrent ? "border-violet-200 bg-violet-50" : "border-gray-200"
+                  isCurrent ? "border-violet-200 bg-violet-50" : "border-black"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
@@ -729,7 +723,7 @@ export default function ContentDetail() {
                 ) : sibling ? (
                   <button
                     onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
-                    className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    className="rounded-md border border-black bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Open
                   </button>
@@ -772,7 +766,7 @@ export default function ContentDetail() {
           <button
             onClick={() => setPublishMode("now")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
-              publishMode === "now" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+              publishMode === "now" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-black hover:bg-gray-50"
             }`}
           >
             Publish now
@@ -780,7 +774,7 @@ export default function ContentDetail() {
           <button
             onClick={() => setPublishMode("schedule")}
             className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition-colors ${
-              publishMode === "schedule" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+              publishMode === "schedule" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-black hover:bg-gray-50"
             }`}
           >
             Schedule
@@ -794,7 +788,7 @@ export default function ContentDetail() {
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
+              className="w-full rounded-md border border-black bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
             />
           </div>
         )}
@@ -807,7 +801,7 @@ export default function ContentDetail() {
         <div className="mb-3">
           <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Channels</p>
           {entryIsAllChannels ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-black">
               All channels
             </span>
           ) : (

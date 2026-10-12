@@ -1,21 +1,69 @@
 @import "tailwindcss";
 
+/* Wireframe look: black & white, hairline black outlines, square corners, no
+   soft shadows. Colour is stripped globally (see the grayscale filter below);
+   the violet "brand" scale is redefined as pure neutrals so primary buttons,
+   focus rings and links read as black instead of mid-gray. */
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Fraunces", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  --color-violet-50: #f4f4f4;
+  --color-violet-100: #e8e8e8;
+  --color-violet-200: #cfcfcf;
+  --color-violet-300: #a8a8a8;
+  --color-violet-400: #000000;
+  --color-violet-500: #333333;
+  --color-violet-600: #000000;
+  --color-violet-700: #262626;
+  --color-violet-800: #1a1a1a;
+  --color-violet-900: #000000;
 }
 
 html, body, #root {
   height: 100%;
 }
 
+html {
+  filter: grayscale(1);
+}
+
 body {
-  background-color: #f8f7f4;
-  color: #1a1a1e;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 * {
   -webkit-font-smoothing: antialiased;
+}
+
+/* Square corners everywhere except deliberately round things (avatars, dots,
+   tags via rounded-full, and the phone mockup's arbitrary radius). */
+.rounded,
+.rounded-sm,
+.rounded-md,
+.rounded-lg,
+.rounded-xl {
+  border-radius: 0;
+}
+
+/* Flat: no soft drop shadows. Floating panels get a hard offset edge instead. */
+.shadow,
+.shadow-sm,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl {
+  box-shadow: none;
+}
+.wf-pop {
+  box-shadow: 3px 3px 0 #000;
+}
+
+/* Image placeholder: the classic wireframe box with a cross through it. */
+.wf-image {
+  background-color: #fff;
+  background-image:
+    linear-gradient(to top right, transparent calc(50% - 0.5px), #000 calc(50% - 0.5px), #000 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom right, transparent calc(50% - 0.5px), #000 calc(50% - 0.5px), #000 calc(50% + 0.5px), transparent calc(50% + 0.5px));
 }
 
 ::-webkit-scrollbar {
@@ -23,9 +71,8 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d8d8dc;
-  border-radius: 4px;
+  background: #bdbdbd;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #c2c2c8;
+  background: #8c8c8c;
 }
