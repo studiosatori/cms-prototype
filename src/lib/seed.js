@@ -84,12 +84,15 @@ export function isAllChannels(value) {
   return value == null || value === ALL_CHANNELS;
 }
 
+// An entry's channels are "ALL", a single channel id (older data), or an
+// array of channel ids picked in the publish dialog.
 export function resolvePublishedChannelIds(value, allChannels) {
   if (!isAllChannels(value)) {
-    const match = allChannels.find((c) => c.id === value);
-    if (match) return [match.id];
+    const wanted = Array.isArray(value) ? value : [value];
+    const matches = allChannels.filter((c) => wanted.includes(c.id)).map((c) => c.id);
+    if (matches.length > 0) return matches;
   }
-  // ALL, or a stale/unknown value (e.g. a channel that no longer exists) — treat as ALL
+  // ALL, or a stale/unknown value (e.g. channels that no longer exist) — treat as ALL
   // rather than ever resolving to zero channels.
   return allChannels.map((c) => c.id);
 }

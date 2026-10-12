@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages } from "lucide-react";
+import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import {
@@ -44,10 +44,12 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels }) {
       return `Status changed to "${step?.name ?? value}"`;
     }
     case "channels": {
-      if (value === prevEntry.channels) return null;
+      const before = resolvePublishedChannelIds(prevEntry.channels, channels);
+      const after = resolvePublishedChannelIds(value, channels);
+      if (before.join(",") === after.join(",")) return null;
       if (isAllChannels(value)) return "Channels set to All channels";
-      const c = channels.find((c) => c.id === value);
-      return `Channels set to "${c?.name ?? value}" only`;
+      const names = channels.filter((c) => after.includes(c.id)).map((c) => c.name);
+      return `Channels set to "${names.join(", ")}"`;
     }
     case "scheduledPublishAt": {
       const prevValue = prevEntry.scheduledPublishAt ?? null;
@@ -104,6 +106,8 @@ export default function ContentDetail() {
   const [pendingPublish, setPendingPublish] = useState(false);
   const [publishMode, setPublishMode] = useState("now");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [pendingChannels, setPendingChannels] = useState([]);
+  const [pendingVersionIds, setPendingVersionIds] = useState([]);
   const [historyMode, setHistoryMode] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState(null); // null = current live version
   const [commentDraft, setCommentDraft] = useState("");
@@ -141,20 +145,23 @@ export default function ContentDetail() {
     );
   }
 
-  function update(patch) {
+  // Applies a patch to one entry and appends a history snapshot if anything
+  // really changed. Pure, so several entries can be updated in one write.
+  function applyPatch(target, patch) {
     const changeSummaries = Object.keys(patch)
-      .map((key) => describeChange(key, patch[key], entry, { workflowSteps, channels }))
+      .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels }))
       .filter(Boolean);
 
-    const merged = { ...entry, ...patch };
+    const merged = { ...target, ...patch };
     const { history: _omit, ...snapshot } = merged;
     const newHistoryEntry = changeSummaries.length > 0
-      ? [{ id: `h${Date.now()}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
+      ? [{ id: `h${Date.now()}-${target.id}`, timestamp: new Date().toISOString(), userId: users[0]?.id, summary: changeSummaries.join(", "), snapshot }]
       : [];
+    return { ...merged, history: [...(target.history ?? []), ...newHistoryEntry] };
+  }
 
-    setEntries(entries.map((e) =>
-      e.id === id ? { ...merged, history: [...(e.history ?? []), ...newHistoryEntry] } : e
-    ));
+  function update(patch) {
+    setEntries(entries.map((e) => (e.id === id ? applyPatch(e, patch) : e)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
@@ -170,30 +177,44 @@ export default function ContentDetail() {
     setFieldValue(fieldName, next);
   }
 
-  function selectChannel(channelId) {
-    update({ channels: channelId });
+  // Publishing is where channels get chosen: the dialog opens from the header
+  // Publish button, or by moving the entry to the final workflow step.
+  function openPublishDialog() {
+    setPublishMode("now");
+    setScheduledAt(defaultScheduleValue());
+    setPendingChannels(publishedChannelIds);
+    setPendingVersionIds([entry.id]);
+    setPendingPublish(true);
   }
 
-  function setAllChannels() {
-    update({ channels: ALL_CHANNELS });
+  function togglePendingVersion(versionId) {
+    setPendingVersionIds((prev) => (prev.includes(versionId) ? prev.filter((v) => v !== versionId) : [...prev, versionId]));
+  }
+
+  function togglePendingChannel(channelId) {
+    setPendingChannels((prev) => (prev.includes(channelId) ? prev.filter((id) => id !== channelId) : [...prev, channelId]));
   }
 
   function handleStatusChange(value) {
     if (value === publishStepId && value !== displayStatus) {
-      setPublishMode("now");
-      setScheduledAt(defaultScheduleValue());
-      setPendingPublish(true);
+      openPublishDialog();
       return;
     }
     update({ status: value });
   }
 
+  // Each language version stays its own entry (own status, history, comments):
+  // the dialog just applies the same publish action to every ticked version.
   function confirmPublish() {
-    if (publishMode === "schedule" && scheduledAt) {
-      update({ scheduledPublishAt: new Date(scheduledAt).toISOString() });
-    } else {
-      update({ status: publishStepId, scheduledPublishAt: null });
-    }
+    if (pendingChannels.length === 0 || pendingVersionIds.length === 0) return;
+    const channelsValue = channels.every((c) => pendingChannels.includes(c.id)) ? ALL_CHANNELS : pendingChannels;
+    const patch = publishMode === "schedule" && scheduledAt
+      ? { scheduledPublishAt: new Date(scheduledAt).toISOString(), channels: channelsValue }
+      : { status: publishStepId, scheduledPublishAt: null, channels: channelsValue };
+    setEntries(entries.map((e) => (pendingVersionIds.includes(e.id) ? applyPatch(e, patch) : e)));
+    setSaveStatus("saving");
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
     setPendingPublish(false);
   }
 
@@ -253,6 +274,9 @@ export default function ContentDetail() {
   const publishedChannelIds = resolvePublishedChannelIds(entry.channels, channels);
   const entryIsAllChannels = isAllChannels(entry.channels);
 
+  const canConfirmPublish =
+    pendingChannels.length > 0 && pendingVersionIds.length > 0 && (publishMode !== "schedule" || Boolean(scheduledAt));
+
   const groupId = normalizeEntryGroupId(entry);
   const siblings = entries.filter((e) => e.id !== entry.id && normalizeEntryGroupId(e) === groupId);
 
@@ -287,6 +311,14 @@ export default function ContentDetail() {
               channels={channels}
               defaultChannelId={channels.find((c) => c.icon === "globe")?.id ?? channels[0]?.id}
             />
+            {!historyMode && (
+              <button
+                onClick={openPublishDialog}
+                className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+              >
+                <Send size={14} /> {t("Publish")}
+              </button>
+            )}
           </div>
         }
       />
@@ -558,33 +590,30 @@ export default function ContentDetail() {
             <DetailField label="Content type">
               <span className="text-sm text-gray-700">{type ? t(type.name) : ""}</span>
             </DetailField>
-            <DetailField label="Channels">
+            <DetailField label={displayStatus === publishStepId ? "Live on" : "Publishes to"}>
               <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={setAllChannels}
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
-                    entryIsAllChannels ? "bg-gray-700 text-white ring-gray-700" : "bg-white text-gray-500 ring-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  {t("All channels")}
-                </button>
-                {channels.map((c) => {
-                  const Icon = CHANNEL_ICONS[c.icon] || Radio;
-                  const active = publishedChannelIds.includes(c.id);
-                  return (
-                    <button
-                      key={c.id}
-                      onClick={() => selectChannel(c.id)}
-                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
-                        active ? "bg-gray-700 text-white ring-gray-700" : "bg-white text-gray-500 ring-gray-400 hover:text-gray-900"
-                      }`}
-                    >
-                      <Icon size={12} />
-                      {c.name}
-                    </button>
-                  );
-                })}
+                {entryIsAllChannels ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300">
+                    {t("All channels")}
+                  </span>
+                ) : (
+                  channels
+                    .filter((c) => publishedChannelIds.includes(c.id))
+                    .map((c) => {
+                      const Icon = CHANNEL_ICONS[c.icon] || Radio;
+                      return (
+                        <span
+                          key={c.id}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 ring-1 ring-inset ring-gray-300"
+                        >
+                          <Icon size={12} />
+                          {c.name}
+                        </span>
+                      );
+                    })
+                )}
               </div>
+              <p className="mt-2 text-xs text-gray-400">{t("Chosen when you publish.")}</p>
             </DetailField>
             <DetailField label="Locale">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium uppercase text-gray-600">
@@ -748,6 +777,7 @@ export default function ContentDetail() {
         open={pendingPublish}
         onClose={() => setPendingPublish(false)}
         title={t('Publish "{title}"?', { title: entry.title })}
+        maxWidth="max-w-md"
         footer={
           <>
             <button
@@ -758,9 +788,11 @@ export default function ContentDetail() {
             </button>
             <button
               onClick={confirmPublish}
-              className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
+              disabled={!canConfirmPublish}
+              className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {t("OK")}
+              {(publishMode === "schedule" ? t("Schedule") : t("Publish")) +
+                (pendingVersionIds.length > 1 ? ` (${pendingVersionIds.length})` : "")}
             </button>
           </>
         }
@@ -801,28 +833,79 @@ export default function ContentDetail() {
             ? t("At the scheduled time, this entry will go live on:")
             : t("This entry will go live now on:")}
         </p>
-        <div className="mb-3">
-          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Channels")}</p>
-          {entryIsAllChannels ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
-              {t("All channels")}
-            </span>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {channels
-                .filter((c) => publishedChannelIds.includes(c.id))
-                .map((c) => (
-                  <StatusPill key={c.id} status={c.name} color={c.color} />
-                ))}
-              {publishedChannelIds.length === 0 && (
-                <span className="text-xs text-gray-400">{t("No channels selected")}</span>
-              )}
-            </div>
+        <div className="mb-4">
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Channels")}</p>
+            {pendingChannels.length < channels.length && (
+              <button
+                onClick={() => setPendingChannels(channels.map((c) => c.id))}
+                className="text-xs font-medium text-violet-600 hover:underline"
+              >
+                {t("Select all")}
+              </button>
+            )}
+          </div>
+          <div className="space-y-1">
+            {channels.map((c) => {
+              const Icon = CHANNEL_ICONS[c.icon] || Radio;
+              return (
+                <label
+                  key={c.id}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={pendingChannels.includes(c.id)}
+                    onChange={() => togglePendingChannel(c.id)}
+                    className="h-4 w-4 rounded border-gray-300 accent-violet-600"
+                  />
+                  <Icon size={14} className="text-gray-500" />
+                  {c.name}
+                </label>
+              );
+            })}
+          </div>
+          {pendingChannels.length === 0 && (
+            <p className="mt-1.5 text-xs text-red-600">{t("Select at least one channel")}</p>
           )}
         </div>
+
         <div>
-          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Locale")}</p>
-          <span className="text-sm font-medium uppercase text-gray-700">{entry.locale}</span>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Languages")}</p>
+          <div className="space-y-1">
+            {LOCALE_LIST.map((l) => {
+              const version = l === entry.locale ? entry : siblings.find((sb) => sb.locale === l);
+              if (!version) {
+                return (
+                  <div key={l} className="flex items-center gap-2.5 rounded-md border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-400">
+                    <span className="w-7 shrink-0 font-semibold">{LOCALE_LABELS[l]}</span>
+                    {t("No version in this language yet")}
+                  </div>
+                );
+              }
+              const versionStatusId = normalizeEntryStatus(version.status, workflowSteps);
+              const versionStep = workflowSteps.find((st) => st.id === versionStatusId);
+              return (
+                <label
+                  key={l}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800 hover:bg-gray-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={pendingVersionIds.includes(version.id)}
+                    onChange={() => togglePendingVersion(version.id)}
+                    className="h-4 w-4 rounded border-gray-300 accent-violet-600"
+                  />
+                  <span className="w-5 shrink-0 font-semibold text-gray-500">{LOCALE_LABELS[l]}</span>
+                  <span className="flex-1">{t(LOCALE_NAMES[l] ?? l)}</span>
+                  <StatusPill status={versionStep?.name ?? version.status} color={versionStep?.color} />
+                </label>
+              );
+            })}
+          </div>
+          {pendingVersionIds.length === 0 && (
+            <p className="mt-1.5 text-xs text-red-600">{t("Select at least one language")}</p>
+          )}
         </div>
       </Modal>
     </div>

@@ -104,7 +104,14 @@ export const CS = {
 
   // Publish dialog
   "Publish \"{title}\"?": "Publikovat „{title}“?",
+  "Publish": "Publikovat",
   "Publish now": "Publikovat nyní",
+  "Live on": "Zveřejněno na",
+  "Publishes to": "Bude zveřejněno na",
+  "Chosen when you publish.": "Vybírá se při publikování.",
+  "Select all": "Vybrat vše",
+  "Select at least one channel": "Vyberte alespoň jeden kanál",
+  "Select at least one language": "Vyberte alespoň jednu jazykovou verzi",
   "Schedule": "Naplánovat",
   "Publish date & time": "Datum a čas publikace",
   "At the scheduled time, this entry will go live on:": "V naplánovaný čas bude tato položka zveřejněna na:",
