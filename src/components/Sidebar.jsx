@@ -1,4 +1,5 @@
 import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper } from "lucide-react";
+import { useI18n } from "../lib/i18n";
 
 const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
@@ -32,26 +33,27 @@ export default function Sidebar({
   filter,
   onFilter,
 }) {
+  const { t } = useI18n();
   const isAll = !filter.status && !filter.typeId && !filter.channelId && filter.view === "all";
   const reset = { status: null, typeId: null, channelId: null };
 
   return (
     <aside className="w-60 shrink-0 space-y-4 border-r border-gray-300 bg-white p-3">
       <div className="space-y-0.5">
-        <Item icon={List} label={allLabel} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
-        <Item icon={Clock} label="Recent" active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", ...reset })} />
-        <Item icon={CalendarClock} label="Scheduled" active={filter.view === "scheduled"} onClick={() => onFilter({ view: "scheduled", ...reset })} />
+        <Item icon={List} label={t(allLabel)} active={isAll} onClick={() => onFilter({ view: "all", ...reset })} />
+        <Item icon={Clock} label={t("Recent")} active={filter.view === "recent"} onClick={() => onFilter({ view: "recent", ...reset })} />
+        <Item icon={CalendarClock} label={t("Scheduled")} active={filter.view === "scheduled"} onClick={() => onFilter({ view: "scheduled", ...reset })} />
       </div>
 
       <div>
-        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{statusGroupLabel}</p>
+        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(statusGroupLabel)}</p>
         <div className="space-y-0.5">
           {statuses.map((s) => (
             <Item
               key={s.id ?? s.name}
               icon={Folder}
               color={s.color}
-              label={s.name}
+              label={t(s.name)}
               count={s.count}
               active={filter.status === (s.id ?? s.name)}
               onClick={() => onFilter({ view: "status", ...reset, status: s.id ?? s.name })}
@@ -61,16 +63,16 @@ export default function Sidebar({
       </div>
 
       <div>
-        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{typeGroupLabel}</p>
+        <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(typeGroupLabel)}</p>
         <div className="space-y-0.5">
-          {typeItems.map((t) => (
+          {typeItems.map((ti) => (
             <Item
-              key={t.id}
-              icon={t.icon ? TYPE_ICONS[t.icon] : Folder}
-              label={t.name}
-              count={t.count}
-              active={filter.typeId === t.id}
-              onClick={() => onFilter({ view: "type", ...reset, typeId: t.id })}
+              key={ti.id}
+              icon={ti.icon ? TYPE_ICONS[ti.icon] : Folder}
+              label={t(ti.name)}
+              count={ti.count}
+              active={filter.typeId === ti.id}
+              onClick={() => onFilter({ view: "type", ...reset, typeId: ti.id })}
             />
           ))}
         </div>
@@ -78,7 +80,7 @@ export default function Sidebar({
 
       {channelItems && (
         <div>
-          <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{channelGroupLabel}</p>
+          <p className="px-2 pb-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t(channelGroupLabel)}</p>
           <div className="space-y-0.5">
             {channelItems.map((c) => (
               <Item

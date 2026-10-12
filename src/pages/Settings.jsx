@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
@@ -25,13 +26,14 @@ const API_KEYS = [
 ];
 
 function GeneralPanel() {
+  const { t } = useI18n();
   const [name, setName] = useLocalStorage("cms.settings.workspaceName", "Cargo Workspace");
   const [locale, setLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
 
   return (
     <div className="max-w-lg space-y-5">
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Workspace name</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Workspace name")}</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -39,25 +41,26 @@ function GeneralPanel() {
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Default locale</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Default locale")}</label>
         <select
           value={locale}
           onChange={(e) => setLocale(e.target.value)}
           className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
         >
-          <option value="en">English (en)</option>
-          <option value="cs">Czech (cs)</option>
-          <option value="de">German (de)</option>
+          <option value="en">{t("English")} (en)</option>
+          <option value="cs">{t("Czech")} (cs)</option>
+          <option value="de">{t("German")} (de)</option>
         </select>
       </div>
       <button className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
-        Save changes
+        {t("Save changes")}
       </button>
     </div>
   );
 }
 
 function WorkflowPanel() {
+  const { t } = useI18n();
   const [rawSteps, setSteps] = useLocalStorage("cms.settings.workflowSteps", DEFAULT_WORKFLOW_STEPS);
   const steps = useMemo(() => normalizeWorkflowSteps(rawSteps), [rawSteps]);
 
@@ -83,13 +86,13 @@ function WorkflowPanel() {
   }
 
   function addStep() {
-    setSteps([...steps, { id: `step-${Date.now()}`, name: `Step ${steps.length + 1}`, color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] }]);
+    setSteps([...steps, { id: `step-${Date.now()}`, name: t("Step {n}", { n: steps.length + 1 }), color: WORKFLOW_COLOR_PALETTE[steps.length % WORKFLOW_COLOR_PALETTE.length] }]);
   }
 
   return (
     <div className="max-w-lg">
       <p className="mb-4 text-sm text-gray-500">
-        Define the stages content moves through from draft to published, in order, with a color for each.
+        {t("Define the stages content moves through from draft to published, in order, with a color for each.")}
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
@@ -99,7 +102,7 @@ function WorkflowPanel() {
               className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-gray-800 ring-1 ring-inset ring-gray-300"
             >
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: s.color }} />
-              {s.name || `Step ${i + 1}`}
+              {s.name ? t(s.name) : t("Step {n}", { n: i + 1 })}
             </span>
             {i < steps.length - 1 && <ArrowRight size={12} className="text-gray-300" />}
           </span>
@@ -158,13 +161,14 @@ function WorkflowPanel() {
       </div>
 
       <button onClick={addStep} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700">
-        <Plus size={14} /> Add step
+        <Plus size={14} /> {t("Add step")}
       </button>
     </div>
   );
 }
 
 function ChannelsPanel() {
+  const { t } = useI18n();
   const [rawChannels, setChannels] = useLocalStorage("cms.settings.channels", DEFAULT_CHANNELS);
   const channels = useMemo(() => normalizeChannels(rawChannels), [rawChannels]);
 
@@ -194,7 +198,7 @@ function ChannelsPanel() {
       ...channels,
       {
         id: `channel-${Date.now()}`,
-        name: `Channel ${channels.length + 1}`,
+        name: t("Channel {n}", { n: channels.length + 1 }),
         icon: CHANNEL_ICON_KEYS[channels.length % CHANNEL_ICON_KEYS.length],
         color: WORKFLOW_COLOR_PALETTE[channels.length % WORKFLOW_COLOR_PALETTE.length],
       },
@@ -204,7 +208,7 @@ function ChannelsPanel() {
   return (
     <div className="max-w-lg">
       <p className="mb-4 text-sm text-gray-500">
-        Define the channels a piece of content can publish to. Most content goes out on every channel; some is channel-specific.
+        {t("Define the channels a piece of content can publish to. Most content goes out on every channel; some is channel-specific.")}
       </p>
 
       <div className="mb-5 flex flex-wrap items-center gap-1.5">
@@ -298,13 +302,14 @@ function ChannelsPanel() {
       </div>
 
       <button onClick={addChannel} className="mt-3 flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700">
-        <Plus size={14} /> Add channel
+        <Plus size={14} /> {t("Add channel")}
       </button>
     </div>
   );
 }
 
 function UsersPanel() {
+  const { t } = useI18n();
   const [users, setUsers] = useLocalStorage("cms.settings.users", () =>
     seedUsers().map((u, i) => ({ ...u, role: ROLES[i % ROLES.length] }))
   );
@@ -340,7 +345,7 @@ function UsersPanel() {
           className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
         >
           {ROLES.map((role) => (
-            <option key={role} value={role}>{role}</option>
+            <option key={role} value={role}>{t(role)}</option>
           ))}
         </select>
       ),
@@ -369,29 +374,30 @@ function ApiKeysPanel() {
 }
 
 export default function Settings() {
+  const { t } = useI18n();
   const [tab, setTab] = useState("general");
 
   return (
     <div className="flex h-full min-h-0">
       <aside className="w-56 shrink-0 border-r border-gray-300 bg-white p-3">
-        <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">Settings</p>
+        <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Settings")}</p>
         <div className="space-y-2">
-          {TABS.map((t) => (
+          {TABS.map((tb) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tb.id}
+              onClick={() => setTab(tb.id)}
               className={`flex w-full items-center rounded-md px-2 py-1.5 text-left text-sm ${
-                tab === t.id ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
+                tab === tb.id ? "bg-gray-200 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              {t.label}
+              {t(tb.label)}
             </button>
           ))}
         </div>
       </aside>
 
       <div className="flex-1 overflow-y-auto p-6">
-        <h1 className="mb-4 text-xl font-semibold text-gray-900">{TABS.find((t) => t.id === tab)?.label}</h1>
+        <h1 className="mb-4 text-xl font-semibold text-gray-900">{t(TABS.find((tb) => tb.id === tab)?.label)}</h1>
         {tab === "general" && <GeneralPanel />}
         {tab === "workflow" && <WorkflowPanel />}
         {tab === "channels" && <ChannelsPanel />}

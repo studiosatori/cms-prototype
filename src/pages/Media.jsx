@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Upload, List, LayoutGrid } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedMedia, seedUsers, getUser } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
 import SegmentedControl from "../components/SegmentedControl";
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+function formatDate(iso, locale) {
+  return new Date(iso).toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function formatSize(kb) {
@@ -16,6 +17,7 @@ function formatSize(kb) {
 }
 
 export default function Media() {
+  const { t, dateLocale } = useI18n();
   const [media] = useLocalStorage("cms.media", seedMedia);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
@@ -49,7 +51,7 @@ export default function Media() {
     },
     { key: "kind", header: "Type", render: (r) => <span className="text-gray-500">{r.kind}</span> },
     { key: "sizeKb", header: "Size", sortValue: (r) => r.sizeKb, render: (r) => <span className="text-gray-500">{formatSize(r.sizeKb)}</span> },
-    { key: "updatedAt", header: "Uploaded", sortValue: (r) => r.updatedAt, render: (r) => <span className="text-gray-500">{formatDate(r.updatedAt)}</span> },
+    { key: "updatedAt", header: "Uploaded", sortValue: (r) => r.updatedAt, render: (r) => <span className="text-gray-500">{formatDate(r.updatedAt, dateLocale)}</span> },
     {
       key: "uploadedBy",
       header: "Uploaded by",
@@ -68,7 +70,7 @@ export default function Media() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Media library</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t("Media library")}</h1>
         <div className="flex items-center gap-2">
           <SegmentedControl
             value={view}
@@ -79,7 +81,7 @@ export default function Media() {
             ]}
           />
           <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
-            <Upload size={15} /> Upload
+            <Upload size={15} /> {t("Upload")}
           </button>
         </div>
       </div>
@@ -120,7 +122,7 @@ export default function Media() {
             );
           })}
           {filtered.length === 0 && (
-            <p className="col-span-full py-12 text-center text-sm text-gray-400">No items to show.</p>
+            <p className="col-span-full py-12 text-center text-sm text-gray-400">{t("No items to show.")}</p>
           )}
         </div>
       )}

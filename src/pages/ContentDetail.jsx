@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
@@ -24,8 +25,8 @@ function defaultScheduleValue() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function formatScheduled(iso) {
-  return new Date(iso).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+function formatScheduled(iso, locale = "en-GB") {
+  return new Date(iso).toLocaleString(locale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
 // Turns one key of an update() patch into a human-readable history line, or
@@ -63,7 +64,7 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels }) {
   }
 }
 
-function fieldValueText(f, value, taxonomies, media) {
+function fieldValueText(f, value, taxonomies, media, tr) {
   if (f.type === "Taxonomy") {
     const taxonomy = taxonomies.find((t) => t.id === f.taxonomyId);
     const ids = value ?? [];
@@ -72,7 +73,7 @@ function fieldValueText(f, value, taxonomies, media) {
     const names = ids.map((tid) => flat.find((t) => t.id === tid)?.name).filter(Boolean);
     return names.length > 0 ? names.join(", ") : "—";
   }
-  if (f.type === "Boolean") return value ? "Yes" : "No";
+  if (f.type === "Boolean") return value ? tr("Yes") : tr("No");
   if (f.type === "Media") {
     const m = media.find((m) => m.id === value);
     return m?.name ?? "—";
@@ -82,6 +83,8 @@ function fieldValueText(f, value, taxonomies, media) {
 
 export default function ContentDetail() {
   const { id } = useParams();
+  const { t, dateLocale } = useI18n();
+  const fmtDate = (iso) => formatScheduled(iso, dateLocale);
   const navigate = useNavigate();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
@@ -130,9 +133,9 @@ export default function ContentDetail() {
   if (!entry) {
     return (
       <div className="p-6">
-        <p className="text-sm text-gray-500">Entry not found.</p>
+        <p className="text-sm text-gray-500">{t("Entry not found.")}</p>
         <button onClick={() => navigate("/content")} className="mt-2 text-sm font-medium text-violet-600 hover:text-violet-700">
-          Back to All content
+          {t("Back to All content")}
         </button>
       </div>
     );
@@ -274,7 +277,7 @@ export default function ContentDetail() {
               onClick={() => setLangDialogOpen(true)}
               className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-200 hover:text-gray-900"
             >
-              <Languages size={14} /> Languages
+              <Languages size={14} /> {t("Languages")}
               <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
                 {siblings.length + 1}/{LOCALE_LIST.length}
               </span>
@@ -292,7 +295,9 @@ export default function ContentDetail() {
         {historyMode ? (
           <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
             <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
-              Viewing a read-only {selectedVersion ? "past version" : "snapshot of the current version"}. Use Back to resume editing.
+              {selectedVersion
+                ? t("Viewing a read-only past version. Use Back to resume editing.")
+                : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
             </div>
             <DetailField label="Title">
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
@@ -305,7 +310,7 @@ export default function ContentDetail() {
             </DetailField>
             {extraFields.map((f) => (
               <DetailField key={f.name} label={f.name}>
-                <p className="text-sm text-gray-700">{fieldValueText(f, viewEntry.fieldValues?.[f.name], taxonomies, media)}</p>
+                <p className="text-sm text-gray-700">{fieldValueText(f, viewEntry.fieldValues?.[f.name], taxonomies, media, t)}</p>
               </DetailField>
             ))}
             <DetailField label="Status">
@@ -314,7 +319,7 @@ export default function ContentDetail() {
             <DetailField label="Channels">
               {viewIsAllChannels ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
-                  All channels
+                  {t("All channels")}
                 </span>
               ) : (
                 <div className="flex flex-wrap gap-1.5">
@@ -356,7 +361,7 @@ export default function ContentDetail() {
             <DetailField label="Body">
               <textarea
                 rows={10}
-                placeholder="Rich text content goes here…"
+                placeholder={t("Rich text content goes here…")}
                 defaultValue={entry.body ?? ""}
                 onBlur={(e) => update({ body: e.target.value })}
                 className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
@@ -435,7 +440,7 @@ export default function ContentDetail() {
                         onChange={(e) => setFieldValue(f.name, e.target.checked)}
                         className="h-4 w-4 rounded border-gray-300 accent-violet-600"
                       />
-                      {value ? "Yes" : "No"}
+                      {value ? t("Yes") : t("No")}
                     </label>
                   </DetailField>
                 );
@@ -449,7 +454,7 @@ export default function ContentDetail() {
                       onChange={(e) => setFieldValue(f.name, e.target.value)}
                       className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
                     >
-                      <option value="">None</option>
+                      <option value="">{t("None")}</option>
                       {media.map((m) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
@@ -477,10 +482,10 @@ export default function ContentDetail() {
               onClick={exitHistory}
               className="flex w-full items-center justify-center gap-1.5 rounded-md bg-gray-700 px-3 py-2.5 text-sm font-medium text-white hover:bg-gray-800"
             >
-              <ArrowLeft size={15} /> Back
+              <ArrowLeft size={15} /> {t("Back")}
             </button>
 
-            <p className="pt-1 text-xs font-medium uppercase tracking-wide text-gray-400">Versions</p>
+            <p className="pt-1 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Versions")}</p>
             <div className="space-y-1">
               <button
                 onClick={() => setSelectedVersionId(null)}
@@ -492,7 +497,7 @@ export default function ContentDetail() {
                   <Clock size={12} />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium text-gray-900">Current version</span>
+                  <span className="block text-sm font-medium text-gray-900">{t("Current version")}</span>
                   <span className="block text-xs text-gray-400">{author?.name}</span>
                 </span>
               </button>
@@ -510,7 +515,7 @@ export default function ContentDetail() {
                   >
                     <Avatar user={changedBy} size={22} />
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-gray-900">{formatScheduled(h.timestamp)}</span>
+                      <span className="block truncate text-sm font-medium text-gray-900">{fmtDate(h.timestamp)}</span>
                       <span className="block truncate text-xs text-gray-400">{changedBy?.name}</span>
                     </span>
                   </button>
@@ -518,7 +523,7 @@ export default function ContentDetail() {
               })}
 
               {history.length === 0 && (
-                <p className="px-2.5 py-4 text-center text-sm text-gray-400">No earlier versions yet.</p>
+                <p className="px-2.5 py-4 text-center text-sm text-gray-400">{t("No earlier versions yet.")}</p>
               )}
             </div>
           </div>
@@ -531,7 +536,7 @@ export default function ContentDetail() {
                 className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
               >
                 {workflowSteps.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{t(s.name)}</option>
                 ))}
               </select>
               <div className="mt-2">
@@ -540,18 +545,18 @@ export default function ContentDetail() {
               {entry.scheduledPublishAt && (
                 <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
                   <Clock size={12} />
-                  Scheduled for {formatScheduled(entry.scheduledPublishAt)}
+                  {t("Scheduled for {when}", { when: fmtDate(entry.scheduledPublishAt) })}
                   <button
                     onClick={() => update({ scheduledPublishAt: null })}
                     className="font-medium text-violet-600 hover:underline"
                   >
-                    Cancel
+                    {t("Cancel")}
                   </button>
                 </p>
               )}
             </DetailField>
             <DetailField label="Content type">
-              <span className="text-sm text-gray-700">{type?.name}</span>
+              <span className="text-sm text-gray-700">{type ? t(type.name) : ""}</span>
             </DetailField>
             <DetailField label="Channels">
               <div className="flex flex-wrap gap-1.5">
@@ -561,7 +566,7 @@ export default function ContentDetail() {
                     entryIsAllChannels ? "bg-gray-700 text-white ring-gray-700" : "bg-white text-gray-500 ring-gray-400 hover:text-gray-900"
                   }`}
                 >
-                  All channels
+                  {t("All channels")}
                 </button>
                 {channels.map((c) => {
                   const Icon = CHANNEL_ICONS[c.icon] || Radio;
@@ -586,7 +591,7 @@ export default function ContentDetail() {
                 {entry.locale}
               </span>
               {entry.locale === defaultLocale && (
-                <span className="ml-1.5 text-xs text-gray-400">Default language</span>
+                <span className="ml-1.5 text-xs text-gray-400">{t("Default language")}</span>
               )}
             </DetailField>
             <DetailField label="Last updated by">
@@ -599,7 +604,7 @@ export default function ContentDetail() {
               onClick={openHistory}
               className="flex w-full items-center justify-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              <History size={14} /> Version history
+              <History size={14} /> {t("Version history")}
               {history.length > 0 && (
                 <span className="rounded-full bg-gray-100 px-1.5 text-xs font-normal text-gray-500">
                   {history.length}
@@ -609,7 +614,7 @@ export default function ContentDetail() {
 
             <div className="border-t border-gray-200 pt-6">
               <p className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">
-                <MessageCircle size={13} /> Comments
+                <MessageCircle size={13} /> {t("Comments")}
                 {comments.length > 0 && (
                   <span className="rounded-full bg-gray-100 px-1.5 text-[11px] font-normal normal-case text-gray-500">
                     {comments.length}
@@ -625,21 +630,21 @@ export default function ContentDetail() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline gap-1.5">
                           <span className="truncate text-sm font-medium text-gray-900">{commenter?.name}</span>
-                          <span className="shrink-0 text-xs text-gray-400">{formatScheduled(c.timestamp)}</span>
+                          <span className="shrink-0 text-xs text-gray-400">{fmtDate(c.timestamp)}</span>
                         </div>
                         <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{c.text}</p>
                       </div>
                       <button
                         onClick={() => deleteComment(c.id)}
                         className="shrink-0 text-gray-300 opacity-0 hover:text-gray-600 group-hover:opacity-100"
-                        title="Delete comment"
+                        title={t("Delete comment")}
                       >
                         <X size={14} />
                       </button>
                     </div>
                   );
                 })}
-                {comments.length === 0 && <p className="text-sm text-gray-400">No comments yet.</p>}
+                {comments.length === 0 && <p className="text-sm text-gray-400">{t("No comments yet.")}</p>}
               </div>
 
               <div className="mt-4 flex items-start gap-2.5">
@@ -654,7 +659,7 @@ export default function ContentDetail() {
                         addComment();
                       }
                     }}
-                    placeholder="Leave a comment…"
+                    placeholder={t("Leave a comment…")}
                     className="w-full resize-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
                   />
                   <div className="mt-2 flex justify-end">
@@ -663,7 +668,7 @@ export default function ContentDetail() {
                       disabled={!commentDraft.trim()}
                       className="rounded-md bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      Comment
+                      {t("Comment")}
                     </button>
                   </div>
                 </div>
@@ -676,13 +681,13 @@ export default function ContentDetail() {
       <Modal
         open={langDialogOpen}
         onClose={() => setLangDialogOpen(false)}
-        title="Languages"
+        title={t("Languages")}
         footer={
           <button
             onClick={() => setLangDialogOpen(false)}
             className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
           >
-            Close
+            {t("Close")}
           </button>
         }
       >
@@ -702,9 +707,9 @@ export default function ContentDetail() {
                   <span className="w-7 shrink-0 text-sm font-semibold text-gray-500">{LOCALE_LABELS[l]}</span>
                   <div>
                     <p className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
-                      {LOCALE_NAMES[l] ?? l}
+                      {t(LOCALE_NAMES[l] ?? l)}
                       {l === defaultLocale && (
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">Default</span>
+                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">{t("Default")}</span>
                       )}
                     </p>
                     {sibling ? (
@@ -712,25 +717,25 @@ export default function ContentDetail() {
                         <StatusPill status={step?.name ?? sibling.status} color={step?.color} />
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-400">No version in this language yet</p>
+                      <p className="text-xs text-gray-400">{t("No version in this language yet")}</p>
                     )}
                   </div>
                 </div>
                 {isCurrent ? (
-                  <span className="text-xs font-medium text-violet-600">Current</span>
+                  <span className="text-xs font-medium text-violet-600">{t("Current")}</span>
                 ) : sibling ? (
                   <button
                     onClick={() => { setLangDialogOpen(false); navigate(`/content/${sibling.id}`); }}
                     className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
                   >
-                    Open
+                    {t("Open")}
                   </button>
                 ) : (
                   <button
                     onClick={() => createTranslation(l)}
                     className="rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
                   >
-                    Create
+                    {t("Create")}
                   </button>
                 )}
               </div>
@@ -742,20 +747,20 @@ export default function ContentDetail() {
       <Modal
         open={pendingPublish}
         onClose={() => setPendingPublish(false)}
-        title={`Publish "${entry.title}"?`}
+        title={t('Publish "{title}"?', { title: entry.title })}
         footer={
           <>
             <button
               onClick={() => setPendingPublish(false)}
               className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
             >
-              Cancel
+              {t("Cancel")}
             </button>
             <button
               onClick={confirmPublish}
               className="rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
             >
-              OK
+              {t("OK")}
             </button>
           </>
         }
@@ -767,7 +772,7 @@ export default function ContentDetail() {
               publishMode === "now" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
             }`}
           >
-            Publish now
+            {t("Publish now")}
           </button>
           <button
             onClick={() => setPublishMode("schedule")}
@@ -775,13 +780,13 @@ export default function ContentDetail() {
               publishMode === "schedule" ? "bg-violet-600 text-white ring-violet-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
             }`}
           >
-            Schedule
+            {t("Schedule")}
           </button>
         </div>
 
         {publishMode === "schedule" && (
           <div className="mb-4">
-            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">Publish date &amp; time</label>
+            <label className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-gray-400">{t("Publish date & time")}</label>
             <input
               type="datetime-local"
               value={scheduledAt}
@@ -793,14 +798,14 @@ export default function ContentDetail() {
 
         <p className="mb-3">
           {publishMode === "schedule"
-            ? "At the scheduled time, this entry will go live on:"
-            : "This entry will go live now on:"}
+            ? t("At the scheduled time, this entry will go live on:")
+            : t("This entry will go live now on:")}
         </p>
         <div className="mb-3">
-          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Channels</p>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Channels")}</p>
           {entryIsAllChannels ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
-              All channels
+              {t("All channels")}
             </span>
           ) : (
             <div className="flex flex-wrap gap-1.5">
@@ -810,13 +815,13 @@ export default function ContentDetail() {
                   <StatusPill key={c.id} status={c.name} color={c.color} />
                 ))}
               {publishedChannelIds.length === 0 && (
-                <span className="text-xs text-gray-400">No channels selected</span>
+                <span className="text-xs text-gray-400">{t("No channels selected")}</span>
               )}
             </div>
           )}
         </div>
         <div>
-          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">Locale</p>
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-gray-400">{t("Locale")}</p>
           <span className="text-sm font-medium uppercase text-gray-700">{entry.locale}</span>
         </div>
       </Modal>

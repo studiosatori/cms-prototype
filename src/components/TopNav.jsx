@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { FileText, Layers, ListTree, Image, Settings as SettingsIcon } from "lucide-react";
+import { FileText, Layers, ListTree, Image, Settings as SettingsIcon, Globe, ChevronDown } from "lucide-react";
 import Avatar from "./Avatar";
 import { seedUsers } from "../lib/seed";
+import { useI18n, UI_LANGUAGES } from "../lib/i18n";
 
 const TABS = [
   { to: "/content", label: "Content", icon: FileText },
@@ -15,6 +16,7 @@ const TABS = [
 
 export default function TopNav() {
   const me = seedUsers()[0];
+  const { t, lang, setLang } = useI18n();
   return (
     <header className="flex h-16 shrink-0 items-center gap-1 border-b border-gray-300 bg-white px-4">
       <div className="flex items-center gap-2.5 pr-4 mr-2 border-r border-gray-300">
@@ -38,12 +40,26 @@ export default function TopNav() {
             }
           >
             <tab.icon size={15} />
-            {tab.label}
+            {t(tab.label)}
           </NavLink>
         ))}
       </nav>
 
-      <div className="ml-auto flex items-center gap-1 text-gray-500">
+      <div className="ml-auto flex items-center gap-3 text-gray-500">
+        <label className="relative flex items-center" title={t("Interface language")}>
+          <Globe size={14} className="pointer-events-none absolute left-2.5 text-gray-400" />
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            aria-label={t("Interface language")}
+            className="appearance-none rounded-md border border-gray-300 bg-white py-1.5 pl-8 pr-7 text-sm font-medium text-gray-700 focus:border-violet-400 focus:outline-none"
+          >
+            {UI_LANGUAGES.map((l) => (
+              <option key={l.id} value={l.id}>{l.label}</option>
+            ))}
+          </select>
+          <ChevronDown size={13} className="pointer-events-none absolute right-2.5 text-gray-400" />
+        </label>
         <Avatar user={me} size={28} />
       </div>
     </header>

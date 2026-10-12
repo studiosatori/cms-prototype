@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Trash2, ArrowUp, ArrowDown, FolderPlus } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedTaxonomies, updateTermInTree, addTermToTree, removeTermFromTree, moveTermInTree } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -11,6 +12,7 @@ function newTermId() {
 }
 
 function TermRow({ term, depth, index, siblingCount, onRename, onAddChild, onRemove, onMove }) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center gap-1.5 py-1" style={{ paddingLeft: depth * 24 }}>
@@ -21,7 +23,7 @@ function TermRow({ term, depth, index, siblingCount, onRename, onAddChild, onRem
         />
         <button
           onClick={() => onAddChild(term.id)}
-          title="Add sub-term"
+          title={t("Add sub-term")}
           className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-violet-600"
         >
           <FolderPlus size={14} />
@@ -67,9 +69,10 @@ function TermRow({ term, depth, index, siblingCount, onRename, onAddChild, onRem
 export default function TaxonomyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [taxonomies, setTaxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
 
-  const taxonomy = taxonomies.find((t) => t.id === id);
+  const taxonomy = taxonomies.find((tx) => tx.id === id);
   const [name, setName] = useState(taxonomy?.name ?? "");
   const [saveStatus, setSaveStatus] = useState("saved");
   const saveTimeoutRef = useRef(null);
@@ -79,16 +82,16 @@ export default function TaxonomyDetail() {
   if (!taxonomy) {
     return (
       <div className="p-6">
-        <p className="text-sm text-gray-500">Taxonomy not found.</p>
+        <p className="text-sm text-gray-500">{t("Taxonomy not found.")}</p>
         <button onClick={() => navigate("/taxonomies")} className="mt-2 text-sm font-medium text-violet-600 hover:text-violet-700">
-          Back to Taxonomies
+          {t("Back to Taxonomies")}
         </button>
       </div>
     );
   }
 
   function update(patch) {
-    setTaxonomies(taxonomies.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    setTaxonomies(taxonomies.map((tx) => (tx.id === id ? { ...tx, ...patch } : tx)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
@@ -99,11 +102,11 @@ export default function TaxonomyDetail() {
   }
 
   function addChildTerm(parentId) {
-    update({ terms: addTermToTree(taxonomy.terms, parentId, { id: newTermId(), name: "New term", children: [] }) });
+    update({ terms: addTermToTree(taxonomy.terms, parentId, { id: newTermId(), name: t("New term"), children: [] }) });
   }
 
   function addRootTerm() {
-    update({ terms: addTermToTree(taxonomy.terms, null, { id: newTermId(), name: "New term", children: [] }) });
+    update({ terms: addTermToTree(taxonomy.terms, null, { id: newTermId(), name: t("New term"), children: [] }) });
   }
 
   function removeTerm(termId) {
@@ -132,23 +135,23 @@ export default function TaxonomyDetail() {
           <input
             value={taxonomy.description ?? ""}
             onChange={(e) => update({ description: e.target.value })}
-            placeholder="What is this taxonomy used for?"
+            placeholder={t("What is this taxonomy used for?")}
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
           />
         </DetailField>
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label className="text-xs font-medium uppercase tracking-wide text-gray-400">Terms</label>
+            <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Terms")}</label>
             <button onClick={addRootTerm} className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700">
-              <Plus size={13} /> Add term
+              <Plus size={13} /> {t("Add term")}
             </button>
           </div>
           <div className="space-y-1 rounded-md border border-gray-300 bg-white p-2">
-            {taxonomy.terms.map((t, i) => (
+            {taxonomy.terms.map((tm, i) => (
               <TermRow
-                key={t.id}
-                term={t}
+                key={tm.id}
+                term={tm}
                 depth={0}
                 index={i}
                 siblingCount={taxonomy.terms.length}
@@ -159,7 +162,7 @@ export default function TaxonomyDetail() {
               />
             ))}
             {taxonomy.terms.length === 0 && (
-              <p className="py-4 text-center text-sm text-gray-400">No terms yet.</p>
+              <p className="py-4 text-center text-sm text-gray-400">{t("No terms yet.")}</p>
             )}
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, Trash2, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
@@ -11,10 +12,11 @@ const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 export default function ContentTypeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
 
-  const type = contentTypes.find((t) => t.id === id);
+  const type = contentTypes.find((ct) => ct.id === id);
   const [name, setName] = useState(type?.name ?? "");
   const [saveStatus, setSaveStatus] = useState("saved");
   const saveTimeoutRef = useRef(null);
@@ -24,16 +26,16 @@ export default function ContentTypeDetail() {
   if (!type) {
     return (
       <div className="p-6">
-        <p className="text-sm text-gray-500">Content type not found.</p>
+        <p className="text-sm text-gray-500">{t("Content type not found.")}</p>
         <button onClick={() => navigate("/content-types")} className="mt-2 text-sm font-medium text-violet-600 hover:text-violet-700">
-          Back to Content types
+          {t("Back to Content types")}
         </button>
       </div>
     );
   }
 
   function update(patch) {
-    setContentTypes(contentTypes.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    setContentTypes(contentTypes.map((ct) => (ct.id === id ? { ...ct, ...patch } : ct)));
     setSaveStatus("saving");
     clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
@@ -70,9 +72,9 @@ export default function ContentTypeDetail() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium uppercase tracking-wide text-gray-400">Fields</label>
+              <label className="text-xs font-medium uppercase tracking-wide text-gray-400">{t("Fields")}</label>
               <button onClick={addField} className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700">
-                <Plus size={13} /> Add field
+                <Plus size={13} /> {t("Add field")}
               </button>
             </div>
             <div className="space-y-2">
@@ -95,7 +97,7 @@ export default function ContentTypeDetail() {
                     className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                   >
                     {FIELD_TYPE_LIST.map((ft) => (
-                      <option key={ft} value={ft}>{ft}</option>
+                      <option key={ft} value={ft}>{t(ft)}</option>
                     ))}
                   </select>
                   {f.type === "Taxonomy" && (
@@ -104,9 +106,9 @@ export default function ContentTypeDetail() {
                       onChange={(e) => updateField(i, { taxonomyId: e.target.value })}
                       className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-sm text-violet-700"
                     >
-                      <option value="" disabled>Choose taxonomy…</option>
-                      {taxonomies.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                      <option value="" disabled>{t("Choose taxonomy…")}</option>
+                      {taxonomies.map((tx) => (
+                        <option key={tx.id} value={tx.id}>{tx.name}</option>
                       ))}
                     </select>
                   )}
@@ -116,7 +118,7 @@ export default function ContentTypeDetail() {
                 </div>
               ))}
               {type.fields.length === 0 && (
-                <p className="py-4 text-center text-sm text-gray-400">No fields yet.</p>
+                <p className="py-4 text-center text-sm text-gray-400">{t("No fields yet.")}</p>
               )}
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
@@ -10,6 +11,7 @@ const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
 export default function ContentTypes() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
   const taxonomiesById = Object.fromEntries(taxonomies.map((t) => [t.id, t]));
@@ -18,7 +20,7 @@ export default function ContentTypes() {
   const [filterValues, setFilterValues] = useState({ fieldType: null });
 
   const filterFields = [
-    { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((t) => ({ value: t, label: t })) },
+    { key: "fieldType", label: "Has field type", options: FIELD_TYPE_LIST.map((ft) => ({ value: ft, label: ft })) },
   ];
 
   const filtered = contentTypes.filter((t) => {
@@ -37,7 +39,7 @@ export default function ContentTypes() {
         return (
           <span className="inline-flex items-center gap-2 font-medium text-gray-900">
             <Icon size={15} style={{ color: r.color }} />
-            {r.name}
+            {t(r.name)}
           </span>
         );
       },
@@ -51,7 +53,7 @@ export default function ContentTypes() {
             <span key={f.name} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
               {f.name}
               <span className="text-gray-400">
-                {" "}· {f.type}
+                {" "}· {t(f.type)}
                 {f.type === "Taxonomy" && f.taxonomyId && ` (${taxonomiesById[f.taxonomyId]?.name ?? "?"})`}
               </span>
             </span>
@@ -70,9 +72,9 @@ export default function ContentTypes() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Content types</h1>
+        <h1 className="text-xl font-semibold text-gray-900">{t("Content types")}</h1>
         <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
-          <Plus size={15} /> Create new
+          <Plus size={15} /> {t("Create new")}
         </button>
       </div>
 

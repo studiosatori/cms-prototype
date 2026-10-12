@@ -1,3 +1,5 @@
+import { useI18n } from "../lib/i18n";
+
 const STYLES = {
   Published: "bg-white text-gray-800 ring-gray-300 before:bg-gray-700",
   Draft: "bg-white text-gray-800 ring-gray-300 before:bg-gray-400",
@@ -6,6 +8,8 @@ const STYLES = {
 };
 
 export default function StatusPill({ status, color }) {
+  const { t } = useI18n();
+  status = t(status);
   if (color) {
     return (
       <span

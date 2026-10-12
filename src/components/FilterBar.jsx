@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, SlidersHorizontal, Plus, ChevronDown, ArrowUpDown, X } from "lucide-react";
+import { useI18n } from "../lib/i18n";
 
 export function FilterBar({
   typeFacetLabel,
-  typeLabel = "Any",
+  typeLabel,
   search,
   onSearchChange,
   chips = [],
@@ -14,6 +15,7 @@ export function FilterBar({
   onFilterChange,
   onClearFilters,
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -33,8 +35,8 @@ export function FilterBar({
       <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-2 py-1.5">
         {typeFacetLabel && (
           <button className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200">
-            {typeFacetLabel}
-            <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-gray-300">{typeLabel}</span>
+            {t(typeFacetLabel)}
+            <span className="rounded bg-white px-1.5 py-0.5 text-gray-900 ring-1 ring-gray-300">{t(typeLabel ?? "Any")}</span>
           </button>
         )}
         <div className="flex flex-1 items-center gap-2 px-1">
@@ -42,7 +44,7 @@ export function FilterBar({
           <input
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Type to search for entries"
+            placeholder={t("Type to search for entries")}
             className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
           />
         </div>
@@ -56,7 +58,7 @@ export function FilterBar({
               }`}
             >
               <SlidersHorizontal size={13} />
-              Filter
+              {t("Filter")}
               {activeCount > 0 && (
                 <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-violet-600 text-[10px] text-white">
                   {activeCount}
@@ -67,29 +69,29 @@ export function FilterBar({
             {open && (
               <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-lg border border-gray-300 bg-white p-3 wf-pop">
                 <div className="mb-2 flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Filters</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">{t("Filters")}</p>
                   {activeCount > 0 && (
                     <button
                       onClick={() => onClearFilters?.()}
                       className="text-xs font-medium text-gray-400 hover:text-gray-700"
                     >
-                      Clear all
+                      {t("Clear all")}
                     </button>
                   )}
                 </div>
                 <div className="space-y-3">
                   {filterFields.map((f) => (
                     <div key={f.key}>
-                      <label className="mb-1 block text-xs font-medium text-gray-500">{f.label}</label>
+                      <label className="mb-1 block text-xs font-medium text-gray-500">{t(f.label)}</label>
                       <div className="relative">
                         <select
                           value={filterValues[f.key] ?? ""}
                           onChange={(e) => onFilterChange?.(f.key, e.target.value || null)}
                           className="w-full appearance-none rounded-md border border-gray-300 bg-white px-2.5 py-1.5 pr-7 text-sm focus:border-violet-400 focus:outline-none"
                         >
-                          <option value="">Any</option>
+                          <option value="">{t("Any")}</option>
                           {f.options.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            <option key={opt.value} value={opt.value}>{t(opt.label)}</option>
                           ))}
                         </select>
                         {filterValues[f.key] ? (
@@ -120,7 +122,7 @@ export function FilterBar({
               className="flex items-center gap-1 rounded-full border border-dashed border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700"
             >
               <Plus size={12} />
-              {chip}
+              {t(chip)}
             </button>
           ))}
         </div>
@@ -132,8 +134,8 @@ export function FilterBar({
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100"
         >
           <ArrowUpDown size={13} />
-          Sort by
-          <span className="text-gray-900">{sortLabel}</span>
+          {t("Sort by")}
+          <span className="text-gray-900">{t(sortLabel)}</span>
           <ChevronDown size={12} />
         </button>
       )}

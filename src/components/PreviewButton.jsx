@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Eye } from "lucide-react";
+import { useI18n } from "../lib/i18n";
 
 export default function PreviewButton({ entryId, channels, defaultChannelId }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -26,7 +28,7 @@ export default function PreviewButton({ entryId, channels, defaultChannelId }) {
           onClick={() => openPreview(defaultChannelId)}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-300 hover:text-gray-900"
         >
-          <Eye size={14} /> Preview
+          <Eye size={14} /> {t("Preview")}
         </button>
         <button
           onClick={() => setOpen((v) => !v)}

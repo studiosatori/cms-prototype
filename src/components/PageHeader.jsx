@@ -1,7 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import SaveIndicator from "./SaveIndicator";
+import { useI18n } from "../lib/i18n";
 
-export default function PageHeader({ crumbs, onBack, actions, saveStatus }) {
+export default function PageHeader({ crumbs: rawCrumbs, onBack, actions, saveStatus }) {
+  const { t } = useI18n();
+  const crumbs = rawCrumbs.map((c) => t(c));
   const title = crumbs[crumbs.length - 1];
   return (
     <div>

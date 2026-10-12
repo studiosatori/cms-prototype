@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper, ChevronDown } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
@@ -11,15 +12,16 @@ import { FilterBar } from "../components/FilterBar";
 
 const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
 
-function timeAgo(iso) {
+function timeAgo(iso, t, dateLocale) {
   const diff = (new Date("2026-08-12T18:00:00") - new Date(iso)) / 36e5;
-  if (diff < 24) return `Today at ${new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
-  if (diff < 48) return "Yesterday";
-  return new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  if (diff < 24) return t("Today at {time}", { time: new Date(iso).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" }) });
+  if (diff < 48) return t("Yesterday");
+  return new Date(iso).toLocaleDateString(dateLocale, { day: "2-digit", month: "short" });
 }
 
 export default function Content() {
   const navigate = useNavigate();
+  const { t, dateLocale } = useI18n();
   const [entries, setEntries] = useLocalStorage("cms.entries", seedEntries);
   const [defaultLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
@@ -152,12 +154,12 @@ export default function Content() {
       header: "Content Type",
       sortValue: (r) => typesById[r.contentTypeId]?.name ?? "",
       render: (r) => {
-        const t = typesById[r.contentTypeId];
-        const Icon = TYPE_ICONS[t?.icon] || FileText;
+        const ty = typesById[r.contentTypeId];
+        const Icon = TYPE_ICONS[ty?.icon] || FileText;
         return (
           <span className="inline-flex items-center gap-1.5 text-gray-600">
-            <Icon size={14} style={{ color: t?.color }} />
-            {t?.name}
+            <Icon size={14} style={{ color: ty?.color }} />
+            {ty ? t(ty.name) : ""}
           </span>
         );
       },
@@ -166,7 +168,7 @@ export default function Content() {
       key: "updatedAt",
       header: "Updated",
       sortValue: (r) => r.updatedAt,
-      render: (r) => <span className="text-gray-500">{timeAgo(r.updatedAt)}</span>,
+      render: (r) => <span className="text-gray-500">{timeAgo(r.updatedAt, t, dateLocale)}</span>,
     },
     {
       key: "updatedBy",
@@ -202,7 +204,7 @@ export default function Content() {
       render: (r) =>
         isAllChannels(r.channels) ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-transparent px-2.5 py-0.5 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-300">
-            All channels
+            {t("All channels")}
           </span>
         ) : (
           <div className="flex flex-wrap gap-1">
@@ -267,7 +269,7 @@ export default function Content() {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">All content</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t("All content")}</h1>
           <div className="flex items-center gap-2">
             <div className="relative">
               <select
@@ -277,7 +279,7 @@ export default function Content() {
               >
                 {LOCALE_LIST.map((l) => (
                   <option key={l} value={l}>
-                    {(LOCALE_NAMES[l] ?? l.toUpperCase()) + (l === defaultLocale ? " (default)" : "")}
+                    {t(LOCALE_NAMES[l] ?? l.toUpperCase()) + (l === defaultLocale ? ` (${t("default")})` : "")}
                   </option>
                 ))}
               </select>
@@ -287,7 +289,7 @@ export default function Content() {
               onClick={() => setAdding((v) => !v)}
               className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"
             >
-              <Plus size={15} /> Create new
+              <Plus size={15} /> {t("Create new")}
             </button>
           </div>
         </div>
@@ -312,7 +314,7 @@ export default function Content() {
               value={draftTitle}
               onChange={(e) => setDraftTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addEntry()}
-              placeholder="Entry title…"
+              placeholder={t("Entry title…")}
               className="flex-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-violet-400 focus:outline-none"
             />
             <select
@@ -320,15 +322,15 @@ export default function Content() {
               onChange={(e) => setDraftType(e.target.value)}
               className="rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
             >
-              {contentTypes.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+              {contentTypes.map((ct) => (
+                <option key={ct.id} value={ct.id}>{t(ct.name)}</option>
               ))}
             </select>
             <button onClick={addEntry} className="rounded-md bg-gray-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700">
-              Create
+              {t("Create")}
             </button>
             <button onClick={() => setAdding(false)} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
-              Cancel
+              {t("Cancel")}
             </button>
           </div>
         )}
@@ -343,8 +345,8 @@ export default function Content() {
             defaultSort={{ key: "updatedAt", dir: "desc" }}
           />
           <div className="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 text-xs text-gray-400">
-            <span>{selected.size} selected</span>
-            <span>Showing {filtered.length} of {scopedEntries.length}</span>
+            <span>{t("{n} selected", { n: selected.size })}</span>
+            <span>{t("Showing {n} of {total}", { n: filtered.length, total: scopedEntries.length })}</span>
           </div>
         </div>
       </div>

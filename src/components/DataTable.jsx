@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { ChevronUp, ChevronDown, MoreHorizontal } from "lucide-react";
+import { useI18n } from "../lib/i18n";
 
 export default function DataTable({
   columns,
@@ -11,6 +12,7 @@ export default function DataTable({
   onRowClick,
   defaultSort,
 }) {
+  const { t } = useI18n();
   const [sort, setSort] = useState(defaultSort || null);
 
   const sorted = useMemo(() => {
@@ -80,7 +82,7 @@ export default function DataTable({
                 onClick={() => toggleSort(col)}
               >
                 <span className="inline-flex items-center gap-1">
-                  {col.header}
+                  {t(col.header)}
                   {sort?.key === col.key &&
                     (sort.dir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                 </span>
@@ -127,7 +129,7 @@ export default function DataTable({
           {sorted.length === 0 && (
             <tr>
               <td colSpan={columns.length + 2} className="py-12 text-center text-sm text-gray-400">
-                No items to show.
+                {t("No items to show.")}
               </td>
             </tr>
           )}

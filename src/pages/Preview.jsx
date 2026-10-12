@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useLocalStorage } from "../lib/storage";
+import { useI18n } from "../lib/i18n";
 import {
   seedEntries, seedContentTypes, seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps,
   DEFAULT_CHANNELS, normalizeChannels,
@@ -7,33 +8,35 @@ import {
 import { Signal, Wifi, BatteryFull, ChevronLeft } from "lucide-react";
 
 function DraftBanner({ compact }) {
+  const { t } = useI18n();
   return (
     <div className={`bg-amber-400 text-center font-medium text-amber-950 ${compact ? "px-4 py-1 text-[11px]" : "px-4 py-1.5 text-xs"}`}>
-      Preview only — not published{compact ? "" : " yet"}
+      {compact ? t("Preview only — not published") : t("Preview only — not published yet")}
     </div>
   );
 }
 
 function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {!isPublished && <DraftBanner />}
       <header className="flex items-center justify-between border-b border-gray-300 px-6 py-4">
         <span className="font-mono text-lg font-semibold">{channel.name}</span>
         <nav className="flex gap-5 text-sm text-gray-500">
-          <span>Home</span>
-          <span>Explore</span>
-          <span>Events</span>
+          <span>{t("Home")}</span>
+          <span>{t("Explore")}</span>
+          <span>{t("Events")}</span>
         </nav>
       </header>
       <main className="mx-auto max-w-2xl px-6 py-12">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
         <h1 className="mb-4 text-3xl font-semibold tracking-tight">{entry.title}</h1>
         <p className="mb-8 text-sm text-gray-400">
-          By {author?.name} · {entry.locale?.toUpperCase()}
+          {t("By {name}", { name: author?.name })} · {entry.locale?.toUpperCase()}
         </p>
         <div className="space-y-4 text-gray-700">
-          {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">No body content yet.</p>}
+          {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
         </div>
       </main>
       <footer className="border-t border-gray-100 px-6 py-6 text-center text-xs text-gray-400">
@@ -44,6 +47,7 @@ function WebsiteMock({ entry, channel, isPublished, author, typeName }) {
 }
 
 function AppMock({ entry, channel, isPublished, typeName }) {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 p-8">
       <div className="flex h-[852px] w-[393px] flex-col overflow-hidden rounded-[2.5rem] border-8 border-gray-900 bg-white shadow-2xl">
@@ -62,7 +66,7 @@ function AppMock({ entry, channel, isPublished, typeName }) {
           <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-gray-400">{typeName}</p>
           <h1 className="mb-3 text-xl font-semibold leading-snug">{entry.title}</h1>
           <div className="space-y-3 text-sm text-gray-600">
-            {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">No body content yet.</p>}
+            {entry.body ? <p>{entry.body}</p> : <p className="italic text-gray-400">{t("No body content yet.")}</p>}
           </div>
         </div>
       </div>
@@ -71,6 +75,7 @@ function AppMock({ entry, channel, isPublished, typeName }) {
 }
 
 export default function Preview() {
+  const { t } = useI18n();
   const { channelId, entryId } = useParams();
   const [entries] = useLocalStorage("cms.entries", seedEntries);
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
@@ -86,19 +91,19 @@ export default function Preview() {
   if (!entry || !channel) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-gray-400">
-        Nothing to preview.
+        {t("Nothing to preview.")}
       </div>
     );
   }
 
-  const type = contentTypes.find((t) => t.id === entry.contentTypeId);
+  const type = contentTypes.find((ct) => ct.id === entry.contentTypeId);
   const author = users.find((u) => u.id === entry.updatedBy);
   const publishStepId = workflowSteps[workflowSteps.length - 1]?.id;
   const isPublished = entry.status === publishStepId;
 
   return channel.icon === "smartphone" ? (
-    <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type?.name} />
+    <AppMock entry={entry} channel={channel} isPublished={isPublished} typeName={type ? t(type.name) : ""} />
   ) : (
-    <WebsiteMock entry={entry} channel={channel} isPublished={isPublished} author={author} typeName={type?.name} />
+    <WebsiteMock entry={entry} channel={channel} isPublished={isPublished} author={author} typeName={type ? t(type.name) : ""} />
   );
 }
