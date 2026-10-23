@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ArrowUp, ArrowDown, Trash2, Plus, Check, Smartphone, Globe, Radio, Tv, Mail, MessageSquare } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
-import { useI18n } from "../lib/i18n";
+import { useI18n, UI_LANGUAGES } from "../lib/i18n";
 import { seedUsers, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, WORKFLOW_COLOR_PALETTE, DEFAULT_CHANNELS, normalizeChannels } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
@@ -26,7 +26,7 @@ const API_KEYS = [
 ];
 
 function GeneralPanel() {
-  const { t } = useI18n();
+  const { t, lang, setLang } = useI18n();
   const [name, setName] = useLocalStorage("cms.settings.workspaceName", "Cargo Workspace");
   const [locale, setLocale] = useLocalStorage("cms.settings.defaultLocale", "en");
 
@@ -51,6 +51,19 @@ function GeneralPanel() {
           <option value="cs">{t("Czech")} (cs)</option>
           <option value="de">{t("German")} (de)</option>
         </select>
+      </div>
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">{t("Interface language")}</label>
+        <select
+          value={lang}
+          onChange={(e) => setLang(e.target.value)}
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+        >
+          {UI_LANGUAGES.map((l) => (
+            <option key={l.id} value={l.id}>{l.label}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-500">{t("The language of the CMS menus and labels. Content languages are set separately.")}</p>
       </div>
       <button className="rounded-md bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700">
         {t("Save changes")}

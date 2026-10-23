@@ -9,6 +9,7 @@ export const CS = {
   "Media": "Média",
   "Settings": "Nastavení",
   "Interface language": "Jazyk rozhraní",
+  "The language of the CMS menus and labels. Content languages are set separately.": "Jazyk nabídek a popisků v redakčním systému. Jazyky obsahu se nastavují zvlášť.",
 
   // Sidebar / views
   "All content": "Veškerý obsah",
