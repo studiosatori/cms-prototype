@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Upload, List, LayoutGrid } from "lucide-react";
+import { Upload, List, LayoutGrid, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedMedia, seedUsers, getUser } from "../lib/seed";
+import BulkActionsMenu from "../components/BulkActionsMenu";
 import DataTable from "../components/DataTable";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
@@ -18,7 +19,7 @@ function formatSize(kb) {
 
 export default function Media() {
   const { t, dateLocale } = useI18n();
-  const [media] = useLocalStorage("cms.media", seedMedia);
+  const [media, setMedia] = useLocalStorage("cms.media", seedMedia);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [view, setView] = useState("list");
@@ -36,6 +37,14 @@ export default function Media() {
     if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const bulkActions = [
+    {
+      label: "Delete", icon: Trash2, danger: true,
+      onSelect: () => { setMedia(media.filter((m) => !selected.has(m.id))); setSelected(new Set()); },
+      confirm: { title: "Delete selected files?", message: "{n} selected will be permanently deleted. Content that uses them will lose the reference. This can't be undone.", confirmLabel: "Delete" },
+    },
+  ];
 
   const columns = [
     {
@@ -70,7 +79,10 @@ export default function Media() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">{t("Media library")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">{t("Media library")}</h1>
+          <BulkActionsMenu count={selected.size} actions={bulkActions} />
+        </div>
         <div className="flex items-center gap-2">
           <SegmentedControl
             value={view}

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ListTree } from "lucide-react";
+import { Plus, ListTree, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedTaxonomies, countTerms } from "../lib/seed";
+import { seedTaxonomies, seedContentTypes, countTerms } from "../lib/seed";
+import BulkActionsMenu from "../components/BulkActionsMenu";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
 
@@ -11,6 +12,7 @@ export default function Taxonomies() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [taxonomies, setTaxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
+  const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
 
@@ -21,6 +23,16 @@ export default function Taxonomies() {
     setTaxonomies([...taxonomies, { id, name: t("New taxonomy"), description: "", terms: [] }]);
     navigate(`/taxonomies/${id}`);
   }
+
+  const inUse = [...selected].some((id) => contentTypes.some((ct) => ct.fields.some((f) => f.taxonomyId === id)));
+  const bulkActions = [
+    {
+      label: "Delete", icon: Trash2, danger: true,
+      disabled: inUse, hint: "Taxonomies used by a content type can't be deleted",
+      onSelect: () => { setTaxonomies(taxonomies.filter((tx) => !selected.has(tx.id))); setSelected(new Set()); },
+      confirm: { title: "Delete selected taxonomies?", message: "{n} selected will be permanently deleted with all their terms. This can't be undone.", confirmLabel: "Delete" },
+    },
+  ];
 
   const columns = [
     {
@@ -50,7 +62,10 @@ export default function Taxonomies() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">{t("Taxonomies")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">{t("Taxonomies")}</h1>
+          <BulkActionsMenu count={selected.size} actions={bulkActions} />
+        </div>
         <button
           onClick={createTaxonomy}
           className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700"

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Copy, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { typeIcon } from "../lib/typeIcons";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
+import BulkActionsMenu from "../components/BulkActionsMenu";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
@@ -142,6 +143,56 @@ export default function Content() {
     setAdding(false);
   }
 
+  const selectedIds = [...selected];
+
+  function clearSelection() {
+    setSelected(new Set());
+  }
+
+  function withHistory(entry, patch, summary) {
+    const merged = { ...entry, ...patch, updatedAt: new Date().toISOString(), updatedBy: users[0]?.id };
+    const { history: _omit, ...snapshot } = merged;
+    return { ...merged, history: [...(entry.history ?? []), { id: `h${Date.now()}-${entry.id}`, timestamp: merged.updatedAt, userId: users[0]?.id, summary, snapshot }] };
+  }
+
+  function changeStatusOfSelected(step) {
+    setEntries(entries.map((e) =>
+      selected.has(e.id) && e.status !== step.id
+        ? withHistory(e, { status: step.id }, `Status changed to "${step.name}"`)
+        : e
+    ));
+    clearSelection();
+  }
+
+  // A copy is a new content item (own group), back at the first workflow step.
+  function duplicateSelected() {
+    const stamp = Date.now();
+    const copies = entries.filter((e) => selected.has(e.id)).map((e, i) => {
+      const id = `e${stamp}-${i}`;
+      const { history: _h, comments: _c, scheduledPublishAt: _s, ...rest } = e;
+      const copy = { ...rest, id, groupId: id, title: `${e.title} (${t("copy")})`, status: workflowSteps[0]?.id, updatedAt: new Date().toISOString(), updatedBy: users[0]?.id };
+      return { ...copy, history: [{ id: `h${stamp}-${i}`, timestamp: copy.updatedAt, userId: users[0]?.id, summary: "Entry created", snapshot: copy }] };
+    });
+    setEntries([...copies, ...entries]);
+    clearSelection();
+  }
+
+  function deleteSelected() {
+    setEntries(entries.filter((e) => !selected.has(e.id)));
+    clearSelection();
+  }
+
+  const bulkActions = [
+    { heading: "Change status" },
+    ...workflowSteps.map((step) => ({ label: step.name, noTranslate: true, color: step.color, onSelect: () => changeStatusOfSelected(step) })),
+    { heading: "More" },
+    { label: "Duplicate", icon: Copy, onSelect: duplicateSelected },
+    {
+      label: "Delete", icon: Trash2, danger: true, onSelect: deleteSelected,
+      confirm: { title: "Delete selected content?", message: "{n} selected will be permanently deleted. This can't be undone.", confirmLabel: "Delete" },
+    },
+  ];
+
   const columns = [
     {
       key: "title",
@@ -269,7 +320,10 @@ export default function Content() {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">{t("All content")}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold text-gray-900">{t("All content")}</h1>
+            <BulkActionsMenu count={selected.size} actions={bulkActions} />
+          </div>
           <div className="flex items-center gap-2">
             <div className="relative">
               <select

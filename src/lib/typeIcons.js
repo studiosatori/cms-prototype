@@ -1,6 +1,6 @@
 import {
   FileText, Gem, Newspaper, MapPin, Calendar, ShoppingBag, Ticket, Route, Building2, Utensils,
-  BedDouble, Image, BookOpen, Tag, Star, Landmark, Camera, Layers,
+  BedDouble, Image, BookOpen, Tag, Star, Landmark, Camera, Layers, Puzzle,
 } from "lucide-react";
 
 // The single place that maps a content type's `icon` key to a lucide icon.
@@ -10,6 +10,7 @@ export const TYPE_ICONS = {
   newspaper: Newspaper,
   "book-open": BookOpen,
   layers: Layers,
+  puzzle: Puzzle,
   gem: Gem,
   tag: Tag,
   star: Star,

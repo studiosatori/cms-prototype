@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedContentTypes, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, seedEntries, FIELD_TYPE_LIST } from "../lib/seed";
 import { typeIcon } from "../lib/typeIcons";
+import BulkActionsMenu from "../components/BulkActionsMenu";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
 
 export default function ContentTypes() {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
+  const [entries] = useLocalStorage("cms.entries", seedEntries);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [filterValues, setFilterValues] = useState({ fieldType: null });
@@ -25,6 +27,16 @@ export default function ContentTypes() {
     if (search && !t.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const inUse = [...selected].some((id) => entries.some((e) => e.contentTypeId === id));
+  const bulkActions = [
+    {
+      label: "Delete", icon: Trash2, danger: true,
+      disabled: inUse, hint: "Types that still have entries can't be deleted",
+      onSelect: () => { setContentTypes(contentTypes.filter((ct) => !selected.has(ct.id))); setSelected(new Set()); },
+      confirm: { title: "Delete selected content types?", message: "{n} selected will be permanently deleted. This can't be undone.", confirmLabel: "Delete" },
+    },
+  ];
 
   const columns = [
     {
@@ -52,7 +64,10 @@ export default function ContentTypes() {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">{t("Content types")}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">{t("Content types")}</h1>
+          <BulkActionsMenu count={selected.size} actions={bulkActions} />
+        </div>
         <button className="flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-700">
           <Plus size={15} /> {t("Create new")}
         </button>
