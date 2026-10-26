@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Trash2, FileText, Gem, Newspaper, MapPin } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
+import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
-
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, "map-pin": MapPin };
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
@@ -53,8 +52,7 @@ export default function ContentTypeDetail() {
     update({ fields: type.fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) });
   }
 
-  const Icon = TYPE_ICONS[type.icon] || FileText;
-
+  
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <PageHeader crumbs={["Content types", name || type.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
@@ -162,7 +160,27 @@ export default function ContentTypeDetail() {
 
         <div className="w-72 shrink-0 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
           <DetailField label="Icon">
-            <Icon size={20} style={{ color: type.color }} />
+            <div className="grid grid-cols-6 gap-1.5">
+              {TYPE_ICON_KEYS.map((key) => {
+                const Icon = typeIcon(key);
+                const active = (type.icon ?? "file-text") === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => update({ icon: key })}
+                    aria-label={key}
+                    aria-pressed={active}
+                    title={key}
+                    className={`flex h-9 items-center justify-center rounded-md border ${
+                      active ? "border-gray-700 bg-gray-100 text-gray-900" : "border-gray-300 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Icon size={16} />
+                  </button>
+                );
+              })}
+            </div>
           </DetailField>
           <DetailField label="Entries using this type">
             <span className="text-sm text-gray-700">{type.entryCount}</span>

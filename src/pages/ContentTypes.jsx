@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Gem, Newspaper, MapPin } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, FIELD_TYPE_LIST } from "../lib/seed";
+import { typeIcon } from "../lib/typeIcons";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
-
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, "map-pin": MapPin };
 
 export default function ContentTypes() {
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ export default function ContentTypes() {
       header: "Name",
       sortValue: (r) => r.name,
       render: (r) => {
-        const Icon = TYPE_ICONS[r.icon] || FileText;
+        const Icon = typeIcon(r.icon);
         return (
           <span className="inline-flex items-center gap-2 font-medium text-gray-900">
             <Icon size={15} style={{ color: r.color }} />

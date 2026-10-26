@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Gem, Newspaper, MapPin, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
+import { typeIcon } from "../lib/typeIcons";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
 import Sidebar from "../components/Sidebar";
 import DataTable from "../components/DataTable";
@@ -10,7 +11,6 @@ import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
 
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, MapPin };
 
 function timeAgo(iso, t, dateLocale) {
   const diff = (new Date("2026-08-12T18:00:00") - new Date(iso)) / 36e5;
@@ -155,7 +155,7 @@ export default function Content() {
       sortValue: (r) => typesById[r.contentTypeId]?.name ?? "",
       render: (r) => {
         const ty = typesById[r.contentTypeId];
-        const Icon = TYPE_ICONS[ty?.icon] || FileText;
+        const Icon = typeIcon(ty?.icon);
         return (
           <span className="inline-flex items-center gap-1.5 text-gray-600">
             <Icon size={14} style={{ color: ty?.color }} />

@@ -1,7 +1,6 @@
-import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper, MapPin } from "lucide-react";
+import { List, Clock, CalendarClock, Folder } from "lucide-react";
 import { useI18n } from "../lib/i18n";
-
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, "map-pin": MapPin };
+import { typeIcon } from "../lib/typeIcons";
 
 function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
   return (
@@ -68,7 +67,7 @@ export default function Sidebar({
           {typeItems.map((ti) => (
             <Item
               key={ti.id}
-              icon={ti.icon ? TYPE_ICONS[ti.icon] : Folder}
+              icon={ti.icon ? typeIcon(ti.icon) : Folder}
               label={t(ti.name)}
               count={ti.count}
               active={filter.typeId === ti.id}
