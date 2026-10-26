@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, FileText, Gem, Newspaper, MapPin } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
-import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
+import { seedContentTypes, FIELD_TYPE_LIST } from "../lib/seed";
 import DataTable from "../components/DataTable";
 import { FilterBar } from "../components/FilterBar";
 
@@ -13,8 +13,6 @@ export default function ContentTypes() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [contentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
-  const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
-  const taxonomiesById = Object.fromEntries(taxonomies.map((t) => [t.id, t]));
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [filterValues, setFilterValues] = useState({ fieldType: null });
@@ -43,23 +41,6 @@ export default function ContentTypes() {
           </span>
         );
       },
-    },
-    {
-      key: "fields",
-      header: "Fields",
-      render: (r) => (
-        <div className="flex flex-wrap gap-1">
-          {r.fields.map((f) => (
-            <span key={f.name} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-              {t(f.label ?? f.name)}
-              <span className="text-gray-400">
-                {" "}· {t(f.type)}
-                {f.type === "Taxonomy" && f.taxonomyId && ` (${taxonomiesById[f.taxonomyId]?.name ?? "?"})`}
-              </span>
-            </span>
-          ))}
-        </div>
-      ),
     },
     {
       key: "entryCount",
