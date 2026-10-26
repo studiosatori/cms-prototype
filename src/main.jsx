@@ -4,6 +4,9 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { I18nProvider } from './lib/i18n.jsx'
+import { runMigrations } from './lib/migrate.js'
+
+runMigrations()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

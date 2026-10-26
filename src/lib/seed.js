@@ -1,3 +1,5 @@
+import { POI_TYPE, POI_TAXONOMIES, POI_MEDIA, POI_ENTRIES } from "./poi";
+
 const USERS = [
   { id: "u1", name: "Petr Augustin", email: "petr.augustin@2fresh.cz", color: "#6366f1" },
   { id: "u2", name: "Lena Novak", email: "lena.novak@2fresh.cz", color: "#ec4899" },
@@ -176,7 +178,7 @@ export function seedEntries() {
       updatedBy: pick(USERS, j + 2).id,
     }));
 
-  return [...base, ...siblings];
+  return [...base, ...siblings, ...POI_ENTRIES];
 }
 
 const CATALOGUE_CATEGORIES = [
@@ -233,6 +235,10 @@ const MEDIA_NAMES = [
 ];
 
 export function seedMedia() {
+  return [...seedGenericMedia(), ...POI_MEDIA];
+}
+
+function seedGenericMedia() {
   return MEDIA_NAMES.map((name, i) => ({
     id: `m${i + 1}`,
     name,
@@ -258,7 +264,7 @@ const CONTENT_TYPE_DEFS = CONTENT_TYPES.map((ct, i) => ({
 
 export function seedContentTypes() {
   const entries = seedEntries();
-  return CONTENT_TYPE_DEFS.map(ct => ({
+  return [...CONTENT_TYPE_DEFS, POI_TYPE].map(ct => ({
     ...ct,
     entryCount: entries.filter(e => e.contentTypeId === ct.id).length,
   }));
@@ -305,7 +311,7 @@ const TAXONOMIES = [
 ];
 
 export function seedTaxonomies() {
-  return TAXONOMIES;
+  return [...TAXONOMIES, ...POI_TAXONOMIES];
 }
 
 export function countTerms(terms) {
@@ -365,7 +371,12 @@ export function normalizeEntryGroupId(entry) {
   return entry.groupId ?? entry.id;
 }
 
-export const FIELD_TYPE_LIST = ["Text", "Rich text", "Number", "Media", "Reference", "Boolean", "Taxonomy"];
+export const FIELD_TYPE_LIST = [
+  "Text", "Short text", "Rich text", "Number", "Boolean", "Select", "Date",
+  "Media", "Media list", "Reference", "Taxonomy",
+  "Link", "Text list", "Key-value", "Date ranges", "Sections",
+  "Address", "Coordinates", "Opening hours", "ID",
+];
 export const DEFAULT_WORKFLOW_STEPS = WORKFLOW_STEPS;
 export const WORKFLOW_COLOR_PALETTE = WORKFLOW_COLORS;
 export const DEFAULT_CHANNELS = CHANNELS;

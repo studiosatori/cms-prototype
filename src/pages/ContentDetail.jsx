@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Smartphone, Globe, Radio, Tv, Mail, MessageSquare, Clock, History, ArrowLeft, MessageCircle, X, Languages, Send } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
@@ -6,10 +6,11 @@ import { useI18n } from "../lib/i18n";
 import {
   seedEntries, seedContentTypes, seedUsers, seedTaxonomies, seedMedia, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId,
   DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus,
-  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds, flattenTerms,
+  DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds,
 } from "../lib/seed";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
+import FieldEditor, { fieldValueText } from "../components/FieldEditor";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
@@ -32,7 +33,7 @@ function formatScheduled(iso, locale = "en-GB") {
 // Turns one key of an update() patch into a human-readable history line, or
 // null if that key's new value doesn't actually differ from what's on the
 // entry already (so blur-without-editing doesn't log a no-op change).
-function describeChange(key, value, prevEntry, { workflowSteps, channels }) {
+function describeChange(key, value, prevEntry, { workflowSteps, channels, fields }) {
   switch (key) {
     case "title":
       return value !== prevEntry.title ? `Title changed to "${value}"` : null;
@@ -59,28 +60,18 @@ function describeChange(key, value, prevEntry, { workflowSteps, channels }) {
     case "fieldValues": {
       const prevValues = prevEntry.fieldValues ?? {};
       const changed = Object.keys(value).filter((k) => JSON.stringify(value[k]) !== JSON.stringify(prevValues[k]));
-      return changed.length > 0 ? `Field "${changed[0]}" updated` : null;
+      const changedField = fields.find((f) => f.name === changed[0]);
+      return changed.length > 0 ? `Field "${changedField?.label ?? changed[0]}" updated` : null;
     }
     default:
       return null;
   }
 }
 
-function fieldValueText(f, value, taxonomies, media, tr) {
-  if (f.type === "Taxonomy") {
-    const taxonomy = taxonomies.find((t) => t.id === f.taxonomyId);
-    const ids = value ?? [];
-    if (!taxonomy || ids.length === 0) return "—";
-    const flat = flattenTerms(taxonomy.terms);
-    const names = ids.map((tid) => flat.find((t) => t.id === tid)?.name).filter(Boolean);
-    return names.length > 0 ? names.join(", ") : "—";
-  }
-  if (f.type === "Boolean") return value ? tr("Yes") : tr("No");
-  if (f.type === "Media") {
-    const m = media.find((m) => m.id === value);
-    return m?.name ?? "—";
-  }
-  return value || "—";
+function GroupHeading({ group, prev }) {
+  const { t } = useI18n();
+  if (!group || group === prev) return null;
+  return <h3 className="border-t border-gray-200 pt-5 text-sm font-semibold text-gray-900">{t(group)}</h3>;
 }
 
 export default function ContentDetail() {
@@ -149,7 +140,7 @@ export default function ContentDetail() {
   // really changed. Pure, so several entries can be updated in one write.
   function applyPatch(target, patch) {
     const changeSummaries = Object.keys(patch)
-      .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels }))
+      .map((key) => describeChange(key, patch[key], target, { workflowSteps, channels, fields: contentTypes.find((c) => c.id === target.contentTypeId)?.fields ?? [] }))
       .filter(Boolean);
 
     const merged = { ...target, ...patch };
@@ -169,12 +160,6 @@ export default function ContentDetail() {
 
   function setFieldValue(fieldName, value) {
     update({ fieldValues: { ...(entry.fieldValues ?? {}), [fieldName]: value } });
-  }
-
-  function toggleTaxonomyTerm(fieldName, termId) {
-    const current = entry.fieldValues?.[fieldName] ?? [];
-    const next = current.includes(termId) ? current.filter((t) => t !== termId) : [...current, termId];
-    setFieldValue(fieldName, next);
   }
 
   // Publishing is where channels get chosen: the dialog opens from the header
@@ -267,7 +252,15 @@ export default function ContentDetail() {
   }
 
   const type = contentTypes.find((t) => t.id === entry.contentTypeId);
-  const extraFields = (type?.fields ?? []).filter((f) => !["title", "slug", "body"].includes(f.name));
+  // Fields flagged `core` fill the fixed title / slug / body slots (a POI's name
+  // is the entry title, its description the body); everything else is rendered
+  // below, grouped by the field's `group`.
+  const coreField = (kind) => type?.fields.find((f) => f.core === kind);
+  const titleField = coreField("title");
+  const slugField = coreField("slug");
+  const bodyField = coreField("body");
+  const extraFields = (type?.fields ?? []).filter((f) => !f.core && !["title", "slug", "body"].includes(f.name));
+  const fieldCtx = { taxonomies, media, entries, contentTypes, entryId: entry.id };
   const author = users.find((u) => u.id === entry.updatedBy);
   const displayStatus = normalizeEntryStatus(entry.status, workflowSteps);
   const currentStep = workflowSteps.find((s) => s.id === displayStatus);
@@ -331,19 +324,22 @@ export default function ContentDetail() {
                 ? t("Viewing a read-only past version. Use Back to resume editing.")
                 : t("Viewing a read-only snapshot of the current version. Use Back to resume editing.")}
             </div>
-            <DetailField label="Title">
+            <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <p className="text-sm text-gray-900">{viewEntry.title}</p>
             </DetailField>
-            <DetailField label="Slug">
+            <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
               <p className="text-sm text-gray-500">/{viewEntry.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</p>
             </DetailField>
-            <DetailField label="Body">
+            <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
               <p className="whitespace-pre-wrap text-sm text-gray-700">{viewEntry.body || "—"}</p>
             </DetailField>
-            {extraFields.map((f) => (
-              <DetailField key={f.name} label={f.name}>
-                <p className="text-sm text-gray-700">{fieldValueText(f, viewEntry.fieldValues?.[f.name], taxonomies, media, t)}</p>
-              </DetailField>
+            {extraFields.map((f, i) => (
+              <Fragment key={f.name}>
+                <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
+                <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+                  <p className="text-sm text-gray-700">{fieldValueText(f, viewEntry.fieldValues?.[f.name], fieldCtx, t)}</p>
+                </DetailField>
+              </Fragment>
             ))}
             <DetailField label="Status">
               <StatusPill status={viewStep?.name ?? viewEntry.status} color={viewStep?.color} />
@@ -375,7 +371,7 @@ export default function ContentDetail() {
           </div>
         ) : (
           <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
-            <DetailField label="Title">
+            <DetailField label={titleField?.label ?? "Title"} required={titleField?.required} localized={titleField?.localized}>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -383,14 +379,14 @@ export default function ContentDetail() {
                 className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
               />
             </DetailField>
-            <DetailField label="Slug">
+            <DetailField label="Slug" required={slugField?.required} localized={slugField?.localized}>
               <input
                 disabled
                 value={`/${entry.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
                 className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-500"
               />
             </DetailField>
-            <DetailField label="Body">
+            <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
               <textarea
                 rows={10}
                 placeholder={t("Rich text content goes here…")}
@@ -400,111 +396,20 @@ export default function ContentDetail() {
               />
             </DetailField>
 
-            {extraFields.map((f) => {
-              const value = entry.fieldValues?.[f.name];
-
-              if (f.type === "Taxonomy") {
-                const taxonomy = taxonomies.find((t) => t.id === f.taxonomyId);
-                const selected = value ?? [];
-                return (
-                  <DetailField key={f.name} label={f.name}>
-                    {taxonomy ? (
-                      <div className="max-h-48 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-white p-2">
-                        {flattenTerms(taxonomy.terms).map((t) => (
-                          <label
-                            key={t.id}
-                            className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50"
-                            style={{ paddingLeft: 6 + t.depth * 16 }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selected.includes(t.id)}
-                              onChange={() => toggleTaxonomyTerm(f.name, t.id)}
-                              className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
-                            />
-                            {t.name}
-                          </label>
-                        ))}
-                        {taxonomy.terms.length === 0 && (
-                          <p className="px-1.5 py-1 text-sm text-gray-400">This taxonomy has no terms yet.</p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-400">No taxonomy selected for this field.</p>
-                    )}
-                  </DetailField>
-                );
-              }
-
-              if (f.type === "Rich text") {
-                return (
-                  <DetailField key={f.name} label={f.name}>
-                    <textarea
-                      rows={4}
-                      defaultValue={value ?? ""}
-                      onBlur={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-                    />
-                  </DetailField>
-                );
-              }
-
-              if (f.type === "Number") {
-                return (
-                  <DetailField key={f.name} label={f.name}>
-                    <input
-                      type="number"
-                      value={value ?? ""}
-                      onChange={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
-                    />
-                  </DetailField>
-                );
-              }
-
-              if (f.type === "Boolean") {
-                return (
-                  <DetailField key={f.name} label={f.name}>
-                    <label className="flex items-center gap-2 text-sm text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={value ?? false}
-                        onChange={(e) => setFieldValue(f.name, e.target.checked)}
-                        className="h-4 w-4 rounded border-gray-300 accent-violet-600"
-                      />
-                      {value ? t("Yes") : t("No")}
-                    </label>
-                  </DetailField>
-                );
-              }
-
-              if (f.type === "Media") {
-                return (
-                  <DetailField key={f.name} label={f.name}>
-                    <select
-                      value={value ?? ""}
-                      onChange={(e) => setFieldValue(f.name, e.target.value)}
-                      className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm"
-                    >
-                      <option value="">{t("None")}</option>
-                      {media.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
-                  </DetailField>
-                );
-              }
-
-              return (
-                <DetailField key={f.name} label={f.name}>
-                  <input
-                    defaultValue={value ?? ""}
-                    onBlur={(e) => setFieldValue(f.name, e.target.value)}
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+            {extraFields.map((f, i) => (
+              <Fragment key={f.name}>
+                <GroupHeading group={f.group} prev={extraFields[i - 1]?.group} />
+                <DetailField label={f.label ?? f.name} required={f.required} localized={f.localized}>
+                  <FieldEditor
+                    key={`${entry.id}-${f.name}`}
+                    field={f}
+                    value={entry.fieldValues?.[f.name]}
+                    onChange={(value) => setFieldValue(f.name, value)}
+                    ctx={fieldCtx}
                   />
                 </DetailField>
-              );
-            })}
+              </Fragment>
+            ))}
           </div>
         )}
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FileText, Gem, Newspaper, ChevronDown } from "lucide-react";
+import { Plus, FileText, Gem, Newspaper, MapPin, ChevronDown } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedEntries, seedContentTypes, seedUsers, LOCALE_LIST, LOCALE_LABELS, LOCALE_NAMES, normalizeEntryGroupId, DEFAULT_WORKFLOW_STEPS, normalizeWorkflowSteps, normalizeEntryStatus, DEFAULT_CHANNELS, normalizeChannels, ALL_CHANNELS, isAllChannels, resolvePublishedChannelIds } from "../lib/seed";
@@ -10,7 +10,7 @@ import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import { FilterBar } from "../components/FilterBar";
 
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
+const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, MapPin };
 
 function timeAgo(iso, t, dateLocale) {
   const diff = (new Date("2026-08-12T18:00:00") - new Date(iso)) / 36e5;

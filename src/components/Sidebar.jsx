@@ -1,7 +1,7 @@
-import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper } from "lucide-react";
+import { List, Clock, CalendarClock, Folder, FileText, Gem, Newspaper, MapPin } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 
-const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper };
+const TYPE_ICONS = { "file-text": FileText, gem: Gem, newspaper: Newspaper, "map-pin": MapPin };
 
 function Item({ icon: Icon, label, count, active, onClick, dim, color }) {
   return (
