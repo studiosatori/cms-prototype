@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronUp, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 
 export default function DataTable({
@@ -88,7 +88,6 @@ export default function DataTable({
                 </span>
               </th>
             ))}
-            <th className="w-10 py-2.5 pr-4" />
           </tr>
         </thead>
         <tbody>
@@ -118,17 +117,12 @@ export default function DataTable({
                     {col.render(row)}
                   </td>
                 ))}
-                <td className="py-2.5 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
-                  <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
-                    <MoreHorizontal size={16} />
-                  </button>
-                </td>
               </tr>
             );
           })}
           {sorted.length === 0 && (
             <tr>
-              <td colSpan={columns.length + 2} className="py-12 text-center text-sm text-gray-400">
+              <td colSpan={columns.length + (selectable ? 1 : 0)} className="py-12 text-center text-sm text-gray-400">
                 {t("No items to show.")}
               </td>
             </tr>
