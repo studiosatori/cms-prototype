@@ -11,6 +11,7 @@ import {
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
 import FieldEditor, { fieldValueText } from "../components/FieldEditor";
+import RichTextEditor, { RichTextView } from "../components/RichTextEditor";
 import StatusPill from "../components/StatusPill";
 import Avatar from "../components/Avatar";
 import Modal from "../components/Modal";
@@ -331,7 +332,7 @@ export default function ContentDetail() {
               <p className="text-sm text-gray-500">/{viewEntry.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}</p>
             </DetailField>
             <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-              <p className="whitespace-pre-wrap text-sm text-gray-700">{viewEntry.body || "—"}</p>
+              <RichTextView key={selectedVersionId ?? "current"} value={viewEntry.body} />
             </DetailField>
             {extraFields.map((f, i) => (
               <Fragment key={f.name}>
@@ -387,12 +388,12 @@ export default function ContentDetail() {
               />
             </DetailField>
             <DetailField label={bodyField?.label ?? "Body"} required={bodyField?.required} localized={bodyField?.localized}>
-              <textarea
-                rows={10}
+              <RichTextEditor
+                key={`${entry.id}-body`}
+                value={entry.body}
                 placeholder={t("Rich text content goes here…")}
-                defaultValue={entry.body ?? ""}
-                onBlur={(e) => update({ body: e.target.value })}
-                className="w-full resize-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
+                onChange={(html) => update({ body: html })}
+                minHeight={220}
               />
             </DetailField>
 

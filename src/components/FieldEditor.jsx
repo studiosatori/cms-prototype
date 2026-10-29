@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { flattenTerms } from "../lib/seed";
+import { htmlToText } from "../lib/richtext";
+import RichTextEditor from "./RichTextEditor";
+import MediaPicker from "./MediaPicker";
 
 const INPUT = "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none";
 const INPUT_SM = "rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm focus:border-violet-400 focus:outline-none";
@@ -149,7 +152,7 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <textarea rows={2} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
 
     case "Rich text":
-      return <textarea rows={4} defaultValue={value ?? ""} onBlur={(e) => onChange(e.target.value)} className={`${INPUT} resize-none`} />;
+      return <RichTextEditor value={value} onChange={onChange} minHeight={110} />;
 
     case "Number":
       return (
@@ -181,31 +184,10 @@ export default function FieldEditor({ field, value, onChange, ctx }) {
       return <input type="date" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm" />;
 
     case "Media":
-      return (
-        <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-2 text-sm">
-          <option value="">{t("None")}</option>
-          {ctx.media.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-        </select>
-      );
+      return <MediaPicker media={ctx.media} value={value} onChange={onChange} />;
 
-    case "Media list": {
-      const selected = value ?? [];
-      return (
-        <div className="max-h-40 space-y-0.5 overflow-y-auto rounded-md border border-gray-300 bg-white p-2">
-          {ctx.media.map((m) => (
-            <label key={m.id} className="flex items-center gap-2 rounded px-1.5 py-1 text-sm text-gray-700 hover:bg-gray-50">
-              <input
-                type="checkbox"
-                checked={selected.includes(m.id)}
-                onChange={() => onChange(selected.includes(m.id) ? selected.filter((x) => x !== m.id) : [...selected, m.id])}
-                className="h-3.5 w-3.5 rounded border-gray-300 accent-violet-600"
-              />
-              {m.name}
-            </label>
-          ))}
-        </div>
-      );
-    }
+    case "Media list":
+      return <MediaPicker media={ctx.media} value={value} onChange={onChange} multiple />;
 
     case "Reference": {
       const target = ctx.contentTypes.find((ct) => ct.name === field.targetName || ct.id === field.targetTypeId);
@@ -341,6 +323,7 @@ export function fieldValueText(f, value, ctx, tr) {
       const flat = flattenTerms(taxonomy.terms);
       return value.map((id) => flat.find((x) => x.id === id)?.name).filter(Boolean).join(", ") || empty;
     }
+    case "Rich text": return htmlToText(value) || empty;
     case "Boolean": return value ? tr("Yes") : tr("No");
     case "Media": return ctx.media.find((m) => m.id === value)?.name ?? empty;
     case "Media list": return value.map((id) => ctx.media.find((m) => m.id === id)?.name).filter(Boolean).join(", ") || empty;
