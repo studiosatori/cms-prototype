@@ -11,6 +11,14 @@ export default function SaveIndicator({ status }) {
       </span>
     );
   }
+  if (status === "unsaved") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        {t("Unsaved changes")}
+      </span>
+    );
+  }
   if (status === "saved") {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">

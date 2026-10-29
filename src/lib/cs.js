@@ -331,4 +331,10 @@ export const CS = {
   "Remove link": "Odebrat odkaz",
   "Link URL": "Adresa odkazu",
   "Drag to reorder": "Pořadí změníte přetažením",
+  "Unsaved changes": "Neuložené změny",
+  "Save": "Uložit",
+  "Discard changes": "Zahodit změny",
+  "Keep editing": "Pokračovat v úpravách",
+  "Save your changes?": "Uložit změny?",
+  "Changes to a content type affect every entry of that type. You have unsaved changes to this one.": "Změny obsahového vzoru se dotknou všech položek tohoto vzoru. Máte neuložené změny.",
 };

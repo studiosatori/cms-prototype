@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
@@ -7,22 +7,38 @@ import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
 import { TYPE_ICON_KEYS, typeIcon } from "../lib/typeIcons";
 import PageHeader from "../components/PageHeader";
 import DetailField from "../components/DetailField";
+import Modal from "../components/Modal";
 
 export default function ContentTypeDetail() {
   const { id } = useParams();
+  // Keyed so each content type starts from its own saved state.
+  return <ContentTypeEditor key={id} id={id} />;
+}
+
+// Content types shape every entry of that type, so edits are held in a draft
+// and only applied by Save, never autosaved.
+function ContentTypeEditor({ id }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [contentTypes, setContentTypes] = useLocalStorage("cms.contentTypes", seedContentTypes);
   const [taxonomies] = useLocalStorage("cms.taxonomies", seedTaxonomies);
 
   const type = contentTypes.find((ct) => ct.id === id);
-  const [name, setName] = useState(type?.name ?? "");
-  const [saveStatus, setSaveStatus] = useState("saved");
+  const [draft, setDraft] = useState(type);
+  const [justSaved, setJustSaved] = useState(false);
   const [dragIndex, setDragIndex] = useState(null);
   const [overIndex, setOverIndex] = useState(null);
-  const saveTimeoutRef = useRef(null);
 
-  useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
+  const dirty = Boolean(type) && JSON.stringify(draft) !== JSON.stringify(type);
+  const blocker = useBlocker(dirty);
+
+  // Closing or reloading the tab with unsaved changes asks first, too.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   if (!type) {
     return (
@@ -36,25 +52,38 @@ export default function ContentTypeDetail() {
   }
 
   function update(patch) {
-    setContentTypes(contentTypes.map((ct) => (ct.id === id ? { ...ct, ...patch } : ct)));
-    setSaveStatus("saving");
-    clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => setSaveStatus("saved"), 600);
+    setDraft((d) => ({ ...d, ...patch }));
+    setJustSaved(false);
+  }
+
+  // Written to storage right away as well as to state: when saving from the
+  // leave dialog the page unmounts in the same step, before an effect would.
+  function save() {
+    const saved = { ...draft, name: draft.name.trim() || type.name };
+    const next = contentTypes.map((ct) => (ct.id === id ? { ...ct, ...saved } : ct));
+    localStorage.setItem("cms.contentTypes", JSON.stringify(next));
+    setContentTypes(next);
+    setDraft({ ...type, ...saved });
+    setJustSaved(true);
+  }
+
+  function discard() {
+    setDraft(type);
   }
 
   function addField() {
-    update({ fields: [...type.fields, { name: `field${type.fields.length + 1}`, label: "New field", type: "Text" }] });
+    update({ fields: [...draft.fields, { name: `field${draft.fields.length + 1}`, label: "New field", type: "Text" }] });
   }
 
   function removeField(i) {
-    update({ fields: type.fields.filter((_, idx) => idx !== i) });
+    update({ fields: draft.fields.filter((_, idx) => idx !== i) });
   }
 
   // Dropping a field card onto another moves it to that position; the editor
   // renders a type's fields in this order.
   function moveField(from, to) {
     if (from !== null && from !== to) {
-      const next = [...type.fields];
+      const next = [...draft.fields];
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
       update({ fields: next });
@@ -64,21 +93,40 @@ export default function ContentTypeDetail() {
   }
 
   function updateField(i, patch) {
-    update({ fields: type.fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) });
+    update({ fields: draft.fields.map((f, idx) => (idx === i ? { ...f, ...patch } : f)) });
   }
 
   
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <PageHeader crumbs={["Content types", name || type.name]} onBack={() => navigate(-1)} saveStatus={saveStatus} />
+      <PageHeader
+        crumbs={["Content types", draft.name || type.name]}
+        onBack={() => navigate(-1)}
+        saveStatus={dirty ? "unsaved" : justSaved ? "saved" : null}
+        actions={
+          <>
+            {dirty && (
+              <button onClick={discard} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+                {t("Discard changes")}
+              </button>
+            )}
+            <button
+              onClick={save}
+              disabled={!dirty}
+              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t("Save")}
+            </button>
+          </>
+        }
+      />
 
       <div className="flex gap-6">
         <div className="flex-1 space-y-5 rounded-lg border border-gray-300 bg-white p-5">
           <DetailField label="Name">
             <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={() => update({ name: name.trim() || type.name })}
+              value={draft.name}
+              onChange={(e) => update({ name: e.target.value })}
               className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none"
             />
           </DetailField>
@@ -91,7 +139,7 @@ export default function ContentTypeDetail() {
               </button>
             </div>
             <div className="space-y-2">
-              {type.fields.map((f, i) => (
+              {draft.fields.map((f, i) => (
                 <div
                   key={i}
                   onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
@@ -187,7 +235,7 @@ export default function ContentTypeDetail() {
                   </div>
                 </div>
               ))}
-              {type.fields.length === 0 && (
+              {draft.fields.length === 0 && (
                 <p className="py-4 text-center text-sm text-gray-400">{t("No fields yet.")}</p>
               )}
             </div>
@@ -199,7 +247,7 @@ export default function ContentTypeDetail() {
             <div className="grid grid-cols-6 gap-1.5">
               {TYPE_ICON_KEYS.map((key) => {
                 const Icon = typeIcon(key);
-                const active = (type.icon ?? "file-text") === key;
+                const active = (draft.icon ?? "file-text") === key;
                 return (
                   <button
                     key={key}
@@ -223,6 +271,30 @@ export default function ContentTypeDetail() {
           </DetailField>
         </div>
       </div>
+
+      <Modal
+        open={blocker.state === "blocked"}
+        onClose={() => blocker.reset?.()}
+        title={t("Save your changes?")}
+        footer={
+          <>
+            <button onClick={() => blocker.reset?.()} className="rounded-md px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100">
+              {t("Keep editing")}
+            </button>
+            <button onClick={() => blocker.proceed?.()} className="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50">
+              {t("Discard changes")}
+            </button>
+            <button
+              onClick={() => { save(); blocker.proceed?.(); }}
+              className="rounded-md bg-gray-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
+            >
+              {t("Save changes")}
+            </button>
+          </>
+        }
+      >
+        {t("Changes to a content type affect every entry of that type. You have unsaved changes to this one.")}
+      </Modal>
     </div>
   );
 }
