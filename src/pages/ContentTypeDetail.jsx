@@ -163,12 +163,6 @@ function ContentTypeEditor({ id }) {
                     >
                       <GripVertical size={15} />
                     </span>
-                    <input
-                      value={f.label ?? f.name}
-                      onChange={(e) => updateField(i, { label: e.target.value })}
-                      aria-label={t("Label")}
-                      className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
-                    />
                     <select
                       value={f.type}
                       onChange={(e) => {
@@ -196,6 +190,12 @@ function ContentTypeEditor({ id }) {
                         ))}
                       </select>
                     )}
+                    <input
+                      value={f.label ?? f.name}
+                      onChange={(e) => updateField(i, { label: e.target.value })}
+                      aria-label={t("Label")}
+                      className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
+                    />
                     <button onClick={() => removeField(i)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600">
                       <Trash2 size={14} />
                     </button>
