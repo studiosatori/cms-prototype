@@ -327,4 +327,8 @@ export const CS = {
   "− Column": "− Sloupec",
   "Link URL (empty removes the link)": "Adresa odkazu (prázdná odkaz odstraní)",
   "Apply": "Použít",
+  "Regular text": "Běžný text",
+  "Remove link": "Odebrat odkaz",
+  "Link URL": "Adresa odkazu",
+  "Drag to reorder": "Pořadí změníte přetažením",
 };

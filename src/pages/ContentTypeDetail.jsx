@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { useLocalStorage } from "../lib/storage";
 import { useI18n } from "../lib/i18n";
 import { seedContentTypes, seedTaxonomies, FIELD_TYPE_LIST } from "../lib/seed";
@@ -18,6 +18,8 @@ export default function ContentTypeDetail() {
   const type = contentTypes.find((ct) => ct.id === id);
   const [name, setName] = useState(type?.name ?? "");
   const [saveStatus, setSaveStatus] = useState("saved");
+  const [dragIndex, setDragIndex] = useState(null);
+  const [overIndex, setOverIndex] = useState(null);
   const saveTimeoutRef = useRef(null);
 
   useEffect(() => () => clearTimeout(saveTimeoutRef.current), []);
@@ -46,6 +48,19 @@ export default function ContentTypeDetail() {
 
   function removeField(i) {
     update({ fields: type.fields.filter((_, idx) => idx !== i) });
+  }
+
+  // Dropping a field card onto another moves it to that position; the editor
+  // renders a type's fields in this order.
+  function moveField(from, to) {
+    if (from !== null && from !== to) {
+      const next = [...type.fields];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      update({ fields: next });
+    }
+    setDragIndex(null);
+    setOverIndex(null);
   }
 
   function updateField(i, patch) {
@@ -77,8 +92,29 @@ export default function ContentTypeDetail() {
             </div>
             <div className="space-y-2">
               {type.fields.map((f, i) => (
-                <div key={i} className="space-y-2 rounded-md border border-gray-300 bg-white p-2">
+                <div
+                  key={i}
+                  onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); if (overIndex !== i) setOverIndex(i); } }}
+                  onDrop={(e) => { e.preventDefault(); moveField(dragIndex, i); }}
+                  className={`space-y-2 rounded-md border bg-white p-2 ${dragIndex === i ? "opacity-40" : ""} ${
+                    overIndex === i && dragIndex !== null && dragIndex !== i ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"
+                  }`}
+                >
                   <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      draggable
+                      title={t("Drag to reorder")}
+                      aria-label={t("Drag to reorder")}
+                      onDragStart={(e) => {
+                        setDragIndex(i);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setDragImage(e.currentTarget.closest("[class*=rounded-md]"), 12, 12);
+                      }}
+                      onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+                      className="flex h-7 w-5 shrink-0 cursor-grab items-center justify-center rounded text-gray-400 hover:bg-gray-100 hover:text-gray-700 active:cursor-grabbing"
+                    >
+                      <GripVertical size={15} />
+                    </span>
                     <input
                       value={f.label ?? f.name}
                       onChange={(e) => updateField(i, { label: e.target.value })}

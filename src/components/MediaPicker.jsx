@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ImagePlus, X } from "lucide-react";
+import { Check, GripVertical, ImagePlus, X } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import Modal from "./Modal";
 
@@ -96,12 +96,25 @@ function Library({ open, onClose, media, selected, multiple, onConfirm }) {
 export default function MediaPicker({ media, value, onChange, multiple = false }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const [dragId, setDragId] = useState(null);
+  const [overId, setOverId] = useState(null);
   const ids = multiple ? (value ?? []) : value ? [value] : [];
   const byId = Object.fromEntries(media.map((m) => [m.id, m]));
 
   function confirm(next) {
     setOpen(false);
     onChange(multiple ? next : next[0] ?? "");
+  }
+
+  // Dragging a tile onto another moves it to that position.
+  function drop(targetId) {
+    if (dragId && dragId !== targetId) {
+      const next = ids.filter((x) => x !== dragId);
+      next.splice(ids.indexOf(targetId), 0, dragId);
+      onChange(next);
+    }
+    setDragId(null);
+    setOverId(null);
   }
 
   const chooseButton = (label) => (
@@ -144,9 +157,22 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
           ) : (
             <div className="flex flex-wrap gap-2">
               {ids.map((id) => (
-                <div key={id} className="relative w-24 overflow-hidden rounded-md border border-gray-300 bg-white">
+                <div
+                  key={id}
+                  draggable
+                  onDragStart={(e) => { setDragId(id); e.dataTransfer.effectAllowed = "move"; }}
+                  onDragOver={(e) => { e.preventDefault(); if (dragId && overId !== id) setOverId(id); }}
+                  onDrop={(e) => { e.preventDefault(); drop(id); }}
+                  onDragEnd={() => { setDragId(null); setOverId(null); }}
+                  className={`relative w-24 cursor-grab overflow-hidden rounded-md border bg-white active:cursor-grabbing ${
+                    dragId === id ? "opacity-40" : ""
+                  } ${overId === id && dragId !== id ? "border-gray-800 ring-2 ring-gray-800" : "border-gray-300"}`}
+                >
                   <div className="wf-image aspect-square border-b border-gray-300" />
                   <p className="truncate px-1.5 py-1 text-xs text-gray-700" title={byId[id]?.name}>{byId[id]?.name ?? t("Missing file")}</p>
+                  <span className="absolute left-1 top-1 flex h-5 items-center rounded bg-white/90 px-0.5 text-gray-500 ring-1 ring-gray-300" aria-hidden>
+                    <GripVertical size={12} />
+                  </span>
                   <button
                     type="button"
                     onClick={() => onChange(ids.filter((x) => x !== id))}
@@ -159,7 +185,10 @@ export default function MediaPicker({ media, value, onChange, multiple = false }
               ))}
             </div>
           )}
-          <div>{chooseButton(ids.length === 0 ? "Choose from library" : "Add or remove files")}</div>
+          <div className="flex items-center gap-3">
+            {chooseButton(ids.length === 0 ? "Choose from library" : "Add or remove files")}
+            {ids.length > 1 && <span className="text-xs text-gray-400">{t("Drag to reorder")}</span>}
+          </div>
         </div>
       )}
 

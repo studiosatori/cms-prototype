@@ -4,7 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Placeholder } from "@tiptap/extensions";
 import { Table, TableRow, TableHeader, TableCell } from "@tiptap/extension-table";
 import {
-  Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Undo2, Redo2,
+  Type, Heading2, Heading3, Bold, Italic, List, ListOrdered, Quote, Link2, Table2, Undo2, Redo2,
 } from "lucide-react";
 import { useI18n } from "../lib/i18n";
 import { toEditorHtml } from "../lib/richtext";
@@ -58,6 +58,7 @@ function Toolbar({ editor }) {
   const s = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
+      paragraph: e.isActive("paragraph"),
       h2: e.isActive("heading", { level: 2 }),
       h3: e.isActive("heading", { level: 3 }),
       bold: e.isActive("bold"),
@@ -78,6 +79,11 @@ function Toolbar({ editor }) {
     setLinkOpen(true);
   }
 
+  function removeLink() {
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    setLinkOpen(false);
+  }
+
   function applyLink() {
     const url = linkUrl.trim();
     if (url) editor.chain().focus().extendMarkRange("link").setLink({ href: /^(https?:|mailto:|tel:|\/)/.test(url) ? url : `https://${url}` }).run();
@@ -88,6 +94,7 @@ function Toolbar({ editor }) {
   return (
     <div className="rounded-t-md border-b border-gray-300 bg-gray-50">
       <div className="flex flex-wrap items-center gap-0.5 px-1.5 py-1">
+        <ToolButton label={t("Regular text")} active={s.paragraph} onClick={run((c) => c.setParagraph())}><Type size={14} /></ToolButton>
         <ToolButton label={t("Heading")} active={s.h2} onClick={run((c) => c.toggleHeading({ level: 2 }))}><Heading2 size={15} /></ToolButton>
         <ToolButton label={t("Subheading")} active={s.h3} onClick={run((c) => c.toggleHeading({ level: 3 }))}><Heading3 size={15} /></ToolButton>
         <Divider />
@@ -130,10 +137,13 @@ function Toolbar({ editor }) {
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyLink(); } if (e.key === "Escape") setLinkOpen(false); }}
-            placeholder={t("Link URL (empty removes the link)")}
+            placeholder={t("Link URL")}
             className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm focus:border-violet-400 focus:outline-none"
           />
           <button type="button" onClick={applyLink} className="rounded-md bg-gray-700 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-800">{t("Apply")}</button>
+          {s.link && (
+            <button type="button" onClick={removeLink} className="rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50">{t("Remove link")}</button>
+          )}
           <button type="button" onClick={() => setLinkOpen(false)} className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-200">{t("Cancel")}</button>
         </div>
       )}
